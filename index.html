@@ -5,882 +5,1005 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sistema de Aportes ONG</title>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
+        /* Estilos CSS personalizados para mejoras y animaciones */
         * {
             box-sizing: border-box;
         }
 
         body {
             margin: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Inter', sans-serif; /* Fuente más moderna */
         }
 
         .gradient-bg {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #6200EE 0%, #BB86FC 100%); /* Púrpura más vibrante */
         }
 
         .card-hover {
-            transition: all 0.3s ease;
+            transition: all 0.3s ease-in-out;
         }
 
         .card-hover:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            transform: translateY(-8px); /* Mayor elevación */
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.25); /* Sombra más pronunciada */
         }
 
         .sidebar {
-            transition: transform 0.3s ease;
+            transition: transform 0.3s ease-in-out, width 0.3s ease-in-out;
+            transform: translateX(0); /* Por defecto visible en desktop */
         }
 
         .sidebar-closed {
             transform: translateX(-100%);
         }
+
+        @media (min-width: 768px) {
+            .sidebar-closed {
+                transform: translateX(0); /* Siempre visible en desktop */
+            }
+            .main-content {
+                margin-left: 16rem; /* Espacio para sidebar abierta en desktop */
+            }
+        }
+
+        @media (max-width: 767px) {
+            .sidebar {
+                position: fixed;
+                top: 0;
+                left: 0;
+                height: 100%;
+                z-index: 1000;
+                box-shadow: 2px 0 10px rgba(0, 0, 0, 0.3);
+            }
+            .main-content {
+                margin-left: 0 !important;
+            }
+            .sidebar:not(.sidebar-closed) + .overlay {
+                display: block; /* Muestra el overlay cuando sidebar está abierta en móvil */
+            }
+        }
+
+        /* Overlay para cuando el sidebar está abierto en móvil */
+        .overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 999;
+        }
+        
+        .chart-container {
+            height: 300px;
+            width: 100%; /* Asegurar que el gráfico se ajuste */
+            display: flex; /* Para centrar el canvas si es necesario */
+            justify-content: center;
+            align-items: center;
+        }
+
+        table {
+            border-collapse: separate;
+            border-spacing: 0;
+            width: 100%;
+        }
+
+        th, td {
+            border-bottom: 1px solid #e2e8f0; /* Color de borde más suave */
+            padding: 12px 16px; /* Más padding */
+            text-align: left;
+        }
+
+        thead th {
+            background-color: #f8fafc; /* Fondo más claro para encabezados */
+            font-weight: 600;
+            color: #4a5568;
+        }
+
+        tbody tr:hover {
+            background-color: #f0f4f8; /* Efecto hover en filas */
+        }
+
+        /* Estilos para modales */
+        .modal-content {
+            animation: fadeInScale 0.3s ease-out forwards;
+        }
+
+        @keyframes fadeInScale {
+            from {
+                opacity: 0;
+                transform: scale(0.95) translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
     </style>
 </head>
 
-<body class="bg-gray-100 flex h-screen">
+<body class="bg-gray-50 flex min-h-screen">
 
-    <aside id="sidebar" class="bg-gray-800 text-white w-64 space-y-6 py-7 px-2 absolute inset-y-0 left-0 transform md:relative md:translate-x-0 transition duration-200 ease-in-out sidebar-closed z-50">
-        <button id="closeSidebar" class="absolute top-4 right-4 text-white md:hidden">
-            <i class="fas fa-times text-2xl"></i>
-        </button>
-        <a href="#" class="text-white flex items-center space-x-2 px-4">
-            <i class="fas fa-hand-holding-heart text-2xl"></i>
-            <span class="text-2xl font-extrabold">ONG Aportes</span>
-        </a>
+    <div id="sidebarOverlay" class="overlay" onclick="closeSidebar()"></div>
 
-        <nav>
-            <a href="#" id="linkDashboard" class="block py-2.5 px-4 rounded transition duration-200 hover:bg-gray-700 active-link"><i class="fas fa-home mr-3"></i>Dashboard</a>
-            <a href="#" id="linkParticipantes" class="block py-2.5 px-4 rounded transition duration-200 hover:bg-gray-700"><i class="fas fa-users mr-3"></i>Participantes</a>
-            <a href="#" id="linkAportes" class="block py-2.5 px-4 rounded transition duration-200 hover:bg-gray-700"><i class="fas fa-coins mr-3"></i>Aportes</a>
-            <a href="#" id="linkReportes" class="block py-2.5 px-4 rounded transition duration-200 hover:bg-gray-700"><i class="fas fa-chart-line mr-3"></i>Reportes</a>
-        </nav>
-        <div class="absolute bottom-0 w-full p-4">
-            <a href="#" id="logoutButton" class="block py-2.5 px-4 rounded transition duration-200 hover:bg-red-700 bg-red-600 text-center"><i class="fas fa-sign-out-alt mr-3"></i>Cerrar Sesión</a>
+    <aside id="sidebar" class="gradient-bg text-white w-64 space-y-6 py-7 px-2 absolute inset-y-0 left-0 md:relative transition duration-300 ease-in-out sidebar-closed shadow-lg">
+        <div class="flex items-center justify-between px-4 mb-8">
+            <a href="#" class="text-white text-3xl font-extrabold uppercase tracking-wide">ONG Aportes</a>
+            <button id="closeSidebar" class="md:hidden text-white focus:outline-none">
+                <i class="fas fa-times text-2xl"></i>
+            </button>
         </div>
+
+        <nav class="space-y-2">
+            <a href="#" class="flex items-center py-3 px-4 rounded-lg transition duration-200 hover:bg-purple-700 hover:text-white text-lg font-medium" onclick="showSection('dashboard')">
+                <i class="fas fa-chart-line mr-4 text-xl"></i>Dashboard
+            </a>
+            <a href="#" class="flex items-center py-3 px-4 rounded-lg transition duration-200 hover:bg-purple-700 hover:text-white text-lg font-medium" onclick="showSection('participantes')">
+                <i class="fas fa-users mr-4 text-xl"></i>Participantes
+            </a>
+            <a href="#" class="flex items-center py-3 px-4 rounded-lg transition duration-200 hover:bg-purple-700 hover:text-white text-lg font-medium" onclick="showSection('aportes')">
+                <i class="fas fa-hand-holding-usd mr-4 text-xl"></i>Aportes
+            </a>
+            <a href="#" class="flex items-center py-3 px-4 rounded-lg transition duration-200 hover:bg-purple-700 hover:text-white text-lg font-medium" onclick="logout()">
+                <i class="fas fa-sign-out-alt mr-4 text-xl"></i>Cerrar Sesión
+            </a>
+        </nav>
     </aside>
 
-    <div class="flex-1 flex flex-col overflow-hidden">
-        <header class="flex justify-between items-center p-4 bg-white shadow-md">
-            <button id="openSidebar" class="text-gray-600 md:hidden">
+    <div class="flex-1 flex flex-col overflow-hidden main-content" id="mainContent">
+        <header class="flex justify-between items-center py-5 px-8 bg-white border-b-4 border-purple-600 shadow-lg">
+            <button id="openSidebar" class="md:hidden text-gray-600 focus:outline-none">
                 <i class="fas fa-bars text-2xl"></i>
             </button>
-            <h1 class="text-xl font-semibold text-gray-800">Panel de Administración</h1>
-            <div class="flex items-center space-x-4">
-                <span id="loggedInUser" class="text-gray-700 font-medium"></span>
-                <i class="fas fa-user-circle text-2xl text-gray-500"></i>
+            <h1 id="sectionTitle" class="text-3xl font-extrabold text-gray-800">Dashboard</h1>
+            <div class="flex items-center">
+                <span id="loggedInUser" class="mr-6 text-gray-700 font-medium"></span>
+                <button onclick="logout()" class="px-5 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50 transition duration-200">Salir</button>
             </div>
         </header>
 
-        <main class="flex-1 overflow-x-hidden overflow-y-auto bg-gray-100 p-6">
-            <div id="content" class="container mx-auto">
+        <main class="flex-1 overflow-x-hidden overflow-y-auto bg-gray-100 p-8">
+
+            <section id="dashboard" class="hidden">
+                <h2 class="text-4xl font-extrabold text-gray-900 mb-8">Dashboard General</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-10">
+                    <div class="bg-white p-7 rounded-2xl shadow-xl card-hover border-b-4 border-green-500">
+                        <h3 class="text-xl font-semibold text-gray-700 mb-3">Total Aportes</h3>
+                        <p id="totalAportes" class="text-5xl font-bold text-green-700"></p>
+                    </div>
+                    <div class="bg-white p-7 rounded-2xl shadow-xl card-hover border-b-4 border-blue-500">
+                        <h3 class="text-xl font-semibold text-gray-700 mb-3">Total Participantes</h3>
+                        <p id="totalParticipantes" class="text-5xl font-bold text-blue-700"></p>
+                    </div>
+                    <div class="bg-white p-7 rounded-2xl shadow-xl card-hover border-b-4 border-purple-500">
+                        <h3 class="text-xl font-semibold text-gray-700 mb-3">Participantes Activos</h3>
+                        <p id="participantesActivos" class="text-5xl font-bold text-purple-700"></p>
+                    </div>
+                    <div class="bg-white p-7 rounded-2xl shadow-xl card-hover border-b-4 border-orange-500">
+                        <h3 class="text-xl font-semibold text-gray-700 mb-3">Participantes Inactivos</h3>
+                        <p id="participantesInactivos" class="text-5xl font-bold text-orange-700"></p>
+                    </div>
                 </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <div class="bg-white p-7 rounded-2xl shadow-xl">
+                        <h3 class="text-xl font-semibold text-gray-700 mb-5">Aportes por Método de Pago</h3>
+                        <div class="chart-container">
+                            <canvas id="aportesMetodoChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="bg-white p-7 rounded-2xl shadow-xl">
+                        <h3 class="text-xl font-semibold text-gray-700 mb-5">Últimos Aportes Registrados</h3>
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full bg-white rounded-lg overflow-hidden">
+                                <thead>
+                                    <tr>
+                                        <th class="py-3 px-5 border-b-2 border-gray-200 bg-gray-100 text-left text-sm font-semibold text-gray-600 uppercase tracking-wider">Código</th>
+                                        <th class="py-3 px-5 border-b-2 border-gray-200 bg-gray-100 text-left text-sm font-semibold text-gray-600 uppercase tracking-wider">Monto</th>
+                                        <th class="py-3 px-5 border-b-2 border-gray-200 bg-gray-100 text-left text-sm font-semibold text-gray-600 uppercase tracking-wider">Fecha</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="latestAportesTableBody" class="divide-y divide-gray-100">
+                                    </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="participantes" class="hidden">
+                <h2 class="text-4xl font-extrabold text-gray-900 mb-8">Gestión de Participantes</h2>
+
+                <div class="bg-white p-7 rounded-2xl shadow-xl mb-8">
+                    <h3 class="text-xl font-semibold text-gray-700 mb-5">Filtros de Búsqueda</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                        <div>
+                            <label for="filterCodigo" class="block text-sm font-medium text-gray-700 mb-2">Código</label>
+                            <input type="text" id="filterCodigo" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-3 focus:ring-purple-500 focus:border-purple-500">
+                        </div>
+                        <div>
+                            <label for="filterNombre" class="block text-sm font-medium text-gray-700 mb-2">Nombre Completo</label>
+                            <input type="text" id="filterNombre" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-3 focus:ring-purple-500 focus:border-purple-500">
+                        </div>
+                        <div>
+                            <label for="filterTutora" class="block text-sm font-medium text-gray-700 mb-2">Tutora Asignada</label>
+                            <input type="text" id="filterTutora" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-3 focus:ring-purple-500 focus:border-purple-500">
+                        </div>
+                    </div>
+                    <div class="flex flex-wrap gap-4">
+                        <button onclick="loadParticipantes()" class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transition duration-200 flex items-center"><i class="fas fa-search mr-2"></i>Buscar</button>
+                        <button onclick="clearParticipanteFilters()" class="px-6 py-3 bg-gray-300 text-gray-800 rounded-lg hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-300 focus:ring-opacity-50 transition duration-200 flex items-center"><i class="fas fa-undo mr-2"></i>Limpiar Filtros</button>
+                        <button onclick="openModal('addEditParticipanteModal', 'add')" class="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50 transition duration-200 flex items-center"><i class="fas fa-user-plus mr-2"></i>Registrar Participante</button>
+                    </div>
+                </div>
+
+                <div class="bg-white p-7 rounded-2xl shadow-xl overflow-x-auto">
+                    <table class="min-w-full bg-white rounded-lg overflow-hidden">
+                        <thead>
+                            <tr>
+                                <th class="py-3 px-5 border-b-2 border-gray-200 bg-gray-100 text-left text-sm font-semibold text-gray-600 uppercase tracking-wider">Código</th>
+                                <th class="py-3 px-5 border-b-2 border-gray-200 bg-gray-100 text-left text-sm font-semibold text-gray-600 uppercase tracking-wider">Nombre Completo</th>
+                                <th class="py-3 px-5 border-b-2 border-gray-200 bg-gray-100 text-left text-sm font-semibold text-gray-600 uppercase tracking-wider">Tutora Asignada</th>
+                                <th class="py-3 px-5 border-b-2 border-gray-200 bg-gray-100 text-left text-sm font-semibold text-gray-600 uppercase tracking-wider">Estado</th>
+                                <th class="py-3 px-5 border-b-2 border-gray-200 bg-gray-100 text-left text-sm font-semibold text-gray-600 uppercase tracking-wider">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="participantesTableBody" class="divide-y divide-gray-100">
+                            </tbody>
+                    </table>
+                    <div id="noParticipantesMessage" class="text-center py-6 text-gray-600 text-lg hidden">No se encontraron participantes.</div>
+                </div>
+            </section>
+
+            <section id="aportes" class="hidden">
+                <h2 class="text-4xl font-extrabold text-gray-900 mb-8">Gestión de Aportes</h2>
+
+                <div class="bg-white p-7 rounded-2xl shadow-xl mb-8">
+                    <h3 class="text-xl font-semibold text-gray-700 mb-5">Filtros de Búsqueda</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                        <div>
+                            <label for="filterAporteCodigoParticipante" class="block text-sm font-medium text-gray-700 mb-2">Código Participante</label>
+                            <input type="text" id="filterAporteCodigoParticipante" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-3 focus:ring-purple-500 focus:border-purple-500">
+                        </div>
+                        <div>
+                            <label for="filterAporteFechaInicio" class="block text-sm font-medium text-gray-700 mb-2">Fecha Inicio</label>
+                            <input type="date" id="filterAporteFechaInicio" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-3 focus:ring-purple-500 focus:border-purple-500">
+                        </div>
+                        <div>
+                            <label for="filterAporteFechaFin" class="block text-sm font-medium text-gray-700 mb-2">Fecha Fin</label>
+                            <input type="date" id="filterAporteFechaFin" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-3 focus:ring-purple-500 focus:border-purple-500">
+                        </div>
+                    </div>
+                    <div class="flex flex-wrap gap-4">
+                        <button onclick="loadAportes()" class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transition duration-200 flex items-center"><i class="fas fa-search mr-2"></i>Buscar</button>
+                        <button onclick="clearAporteFilters()" class="px-6 py-3 bg-gray-300 text-gray-800 rounded-lg hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-300 focus:ring-opacity-50 transition duration-200 flex items-center"><i class="fas fa-undo mr-2"></i>Limpiar Filtros</button>
+                        <button onclick="openModal('addAporteModal')" class="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50 transition duration-200 flex items-center"><i class="fas fa-plus-circle mr-2"></i>Registrar Aporte</button>
+                    </div>
+                </div>
+
+                <div class="bg-white p-7 rounded-2xl shadow-xl overflow-x-auto">
+                    <table class="min-w-full bg-white rounded-lg overflow-hidden">
+                        <thead>
+                            <tr>
+                                <th class="py-3 px-5 border-b-2 border-gray-200 bg-gray-100 text-left text-sm font-semibold text-gray-600 uppercase tracking-wider">Código Participante</th>
+                                <th class="py-3 px-5 border-b-2 border-gray-200 bg-gray-100 text-left text-sm font-semibold text-gray-600 uppercase tracking-wider">Monto</th>
+                                <th class="py-3 px-5 border-b-2 border-gray-200 bg-gray-100 text-left text-sm font-semibold text-gray-600 uppercase tracking-wider">Método de Pago</th>
+                                <th class="py-3 px-5 border-b-2 border-gray-200 bg-gray-100 text-left text-sm font-semibold text-gray-600 uppercase tracking-wider">Meses Cubiertos</th>
+                                <th class="py-3 px-5 border-b-2 border-gray-200 bg-gray-100 text-left text-sm font-semibold text-gray-600 uppercase tracking-wider">Fecha de Aporte</th>
+                                <th class="py-3 px-5 border-b-2 border-gray-200 bg-gray-100 text-left text-sm font-semibold text-gray-600 uppercase tracking-wider">Recibido Por</th>
+                            </tr>
+                        </thead>
+                        <tbody id="aportesTableBody" class="divide-y divide-gray-100">
+                            </tbody>
+                    </table>
+                    <div id="noAportesMessage" class="text-center py-6 text-gray-600 text-lg hidden">No se encontraron aportes.</div>
+                </div>
+            </section>
+
+            <section id="participanteDetalle" class="hidden">
+                <h2 class="text-4xl font-extrabold text-gray-900 mb-8">Detalle del Participante: <span id="detalleParticipanteCodigo" class="text-purple-700"></span></h2>
+
+                <div class="bg-white p-7 rounded-2xl shadow-xl mb-8">
+                    <h3 class="text-xl font-semibold text-gray-700 mb-5">Información del Participante</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-lg text-gray-800">
+                        <p><strong>Nombre Completo:</strong> <span id="detalleNombre" class="font-normal"></span></p>
+                        <p><strong>Fecha de Nacimiento:</strong> <span id="detalleFechaNacimiento" class="font-normal"></span></p>
+                        <p><strong>Tutora Asignada:</strong> <span id="detalleTutora" class="font-normal"></span></p>
+                        <p><strong>Dirección:</strong> <span id="detalleDireccion" class="font-normal"></span></p>
+                        <p><strong>Teléfono:</strong> <span id="detalleTelefono" class="font-normal"></span></p>
+                        <p><strong>Email:</strong> <span id="detalleEmail" class="font-normal"></span></p>
+                        <p><strong>Estado:</strong> <span id="detalleEstado" class="font-normal"></span></p>
+                        <p><strong>Fecha de Registro:</strong> <span id="detalleFechaRegistro" class="font-normal"></span></p>
+                    </div>
+                    <div class="mt-8 flex flex-wrap gap-4">
+                        <button onclick="openModal('addEditParticipanteModal', 'edit', currentParticipanteDetail.Código)" class="px-6 py-3 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-opacity-50 transition duration-200 flex items-center"><i class="fas fa-edit mr-2"></i>Editar Participante</button>
+                        <button onclick="confirmDeleteParticipante(currentParticipanteDetail.Código)" class="px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50 transition duration-200 flex items-center"><i class="fas fa-trash-alt mr-2"></i>Eliminar Participante</button>
+                        <button onclick="showSection('participantes')" class="px-6 py-3 bg-gray-300 text-gray-800 rounded-lg hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-300 focus:ring-opacity-50 transition duration-200 flex items-center"><i class="fas fa-arrow-circle-left mr-2"></i>Volver a Participantes</button>
+                    </div>
+                </div>
+
+                <div class="bg-white p-7 rounded-2xl shadow-xl">
+                    <h3 class="text-xl font-semibold text-gray-700 mb-5">Historial de Aportes</h3>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full bg-white rounded-lg overflow-hidden">
+                            <thead>
+                                <tr>
+                                    <th class="py-3 px-5 border-b-2 border-gray-200 bg-gray-100 text-left text-sm font-semibold text-gray-600 uppercase tracking-wider">Monto</th>
+                                    <th class="py-3 px-5 border-b-2 border-gray-200 bg-gray-100 text-left text-sm font-semibold text-gray-600 uppercase tracking-wider">Método de Pago</th>
+                                    <th class="py-3 px-5 border-b-2 border-gray-200 bg-gray-100 text-left text-sm font-semibold text-gray-600 uppercase tracking-wider">Referencia</th>
+                                    <th class="py-3 px-5 border-b-2 border-gray-200 bg-gray-100 text-left text-sm font-semibold text-gray-600 uppercase tracking-wider">Meses Cubiertos</th>
+                                    <th class="py-3 px-5 border-b-2 border-gray-200 bg-gray-100 text-left text-sm font-semibold text-gray-600 uppercase tracking-wider">Fecha de Aporte</th>
+                                    <th class="py-3 px-5 border-b-2 border-gray-200 bg-gray-100 text-left text-sm font-semibold text-gray-600 uppercase tracking-wider">Recibido Por</th>
+                                </tr>
+                            </thead>
+                            <tbody id="detalleAportesTableBody" class="divide-y divide-gray-100">
+                                </tbody>
+                        </table>
+                        <div id="noDetalleAportesMessage" class="text-center py-6 text-gray-600 text-lg hidden">No hay aportes registrados para este participante.</div>
+                    </div>
+                </div>
+            </section>
+
         </main>
     </div>
 
-    <div id="loginModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-        <div class="bg-white p-8 rounded-lg shadow-xl w-96">
-            <h2 class="text-2xl font-bold text-center mb-6">Iniciar Sesión</h2>
-            <form id="loginForm" class="space-y-4">
-                <div>
-                    <label for="username" class="block text-gray-700 text-sm font-bold mb-2">Usuario:</label>
-                    <input type="text" id="username" name="username" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
+    <div id="loginModal" class="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center z-50">
+        <div class="bg-white p-10 rounded-2xl shadow-2xl w-full max-w-md modal-content">
+            <h2 class="text-3xl font-bold text-center mb-8 text-gray-800">Iniciar Sesión</h2>
+            <form id="loginForm">
+                <div class="mb-6">
+                    <label for="username" class="block text-gray-700 text-base font-semibold mb-2">Usuario:</label>
+                    <input type="text" id="username" name="username" class="shadow-sm appearance-none border border-gray-300 rounded-lg w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500" required>
                 </div>
-                <div>
-                    <label for="password" class="block text-gray-700 text-sm font-bold mb-2">Contraseña:</label>
-                    <input type="password" id="password" name="password" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 mb-3 leading-tight focus:outline-none focus:shadow-outline" required>
+                <div class="mb-8">
+                    <label for="password" class="block text-gray-700 text-base font-semibold mb-2">Contraseña:</label>
+                    <input type="password" id="password" name="password" class="shadow-sm appearance-none border border-gray-300 rounded-lg w-full py-3 px-4 text-gray-700 mb-3 leading-tight focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500" required>
                 </div>
-                <div id="loginError" class="text-red-500 text-xs italic mb-4 hidden"></div>
-                <button type="submit" class="gradient-bg text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline w-full hover:opacity-90 transition-opacity">Entrar</button>
+                <div class="flex items-center justify-center">
+                    <button type="submit" class="gradient-bg text-white font-bold py-3 px-6 rounded-lg focus:outline-none focus:shadow-outline w-full text-lg hover:opacity-90 transition duration-200">Entrar</button>
+                </div>
+                <p id="loginMessage" class="text-red-600 text-center text-sm mt-5 font-medium"></p>
             </form>
         </div>
     </div>
 
-    <div id="participantModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
-        <div class="bg-white p-8 rounded-lg shadow-xl w-full max-w-md">
-            <h2 id="participantModalTitle" class="text-2xl font-bold text-center mb-6">Registrar Participante</h2>
-            <form id="participantForm" class="space-y-4">
-                <input type="hidden" id="originalCodigo">
-                <div>
-                    <label for="p-codigo" class="block text-gray-700 text-sm font-bold mb-2">Código:</label>
-                    <input type="text" id="p-codigo" name="codigo" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
-                </div>
-                <div>
-                    <label for="p-nombre" class="block text-gray-700 text-sm font-bold mb-2">Nombre:</label>
-                    <input type="text" id="p-nombre" name="nombre" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
-                </div>
-                <div>
-                    <label for="p-ciudadania" class="block text-gray-700 text-sm font-bold mb-2">Ciudadanía:</label>
-                    <input type="text" id="p-ciudadania" name="ciudadania" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
-                </div>
-                <div>
-                    <label for="p-tutora" class="block text-gray-700 text-sm font-bold mb-2">Tutora (Correo):</label>
-                    <input type="email" id="p-tutora" name="tutora" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
-                </div>
-                <div id="participantError" class="text-red-500 text-xs italic mb-4 hidden"></div>
-                <div class="flex justify-end space-x-4">
-                    <button type="button" id="cancelParticipant" class="bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded hover:bg-gray-400 focus:outline-none focus:shadow-outline">Cancelar</button>
-                    <button type="submit" class="gradient-bg text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline hover:opacity-90 transition-opacity">Guardar</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <div id="aporteModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
-        <div class="bg-white p-8 rounded-lg shadow-xl w-full max-w-md">
-            <h2 class="text-2xl font-bold text-center mb-6">Registrar Aporte</h2>
-            <form id="aporteForm" class="space-y-4">
-                <div>
-                    <label for="a-codigo" class="block text-gray-700 text-sm font-bold mb-2">Código Participante:</label>
-                    <input type="text" id="a-codigo" name="codigo" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
-                </div>
-                <div>
-                    <label for="a-nombre-participante" class="block text-gray-700 text-sm font-bold mb-2">Nombre Participante:</label>
-                    <input type="text" id="a-nombre-participante" name="nombreParticipante" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" readonly>
-                </div>
-                <div>
-                    <label for="a-monto" class="block text-gray-700 text-sm font-bold mb-2">Monto ($):</label>
-                    <input type="number" id="a-monto" name="monto" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" step="0.01" required>
-                </div>
-                <div>
-                    <label for="a-fecha" class="block text-gray-700 text-sm font-bold mb-2">Fecha:</label>
-                    <input type="date" id="a-fecha" name="fecha" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
-                </div>
-                <div>
-                    <label for="a-meses" class="block text-gray-700 text-sm font-bold mb-2">Mes(es) que cubre:</label>
-                    <select id="a-meses" name="meses" class="shadow border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" multiple required>
+    <div id="addEditParticipanteModal" class="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center z-50 hidden">
+        <div class="bg-white p-10 rounded-2xl shadow-2xl w-full max-w-lg relative modal-content">
+            <button onclick="closeModal('addEditParticipanteModal')" class="absolute top-4 right-4 text-gray-500 hover:text-gray-800 text-3xl font-bold leading-none">&times;</button>
+            <h2 id="addEditParticipanteTitle" class="text-3xl font-bold text-center mb-8 text-gray-800">Registrar Participante</h2>
+            <form id="addEditParticipanteForm">
+                <input type="hidden" id="participanteFormMode" value="add">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                    <div>
+                        <label for="participanteCodigo" class="block text-gray-700 text-base font-semibold mb-2">Código:</label>
+                        <input type="text" id="participanteCodigo" name="Código" class="shadow-sm appearance-none border border-gray-300 rounded-lg w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500" required>
+                    </div>
+                    <div>
+                        <label for="participanteNombre" class="block text-gray-700 text-base font-semibold mb-2">Nombre Completo:</label>
+                        <input type="text" id="participanteNombre" name="Nombre Completo" class="shadow-sm appearance-none border border-gray-300 rounded-lg w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500" required>
+                    </div>
+                    <div>
+                        <label for="participanteFechaNacimiento" class="block text-gray-700 text-base font-semibold mb-2">Fecha de Nacimiento:</label>
+                        <input type="date" id="participanteFechaNacimiento" name="Fecha de Nacimiento" class="shadow-sm appearance-none border border-gray-300 rounded-lg w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500">
+                    </div>
+                    <div>
+                        <label for="participanteTutora" class="block text-gray-700 text-base font-semibold mb-2">Tutora Asignada:</label>
+                        <input type="text" id="participanteTutora" name="Tutora Asignada" class="shadow-sm appearance-none border border-gray-300 rounded-lg w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500">
+                    </div>
+                    <div>
+                        <label for="participanteDireccion" class="block text-gray-700 text-base font-semibold mb-2">Dirección:</label>
+                        <input type="text" id="participanteDireccion" name="Dirección" class="shadow-sm appearance-none border border-gray-300 rounded-lg w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500">
+                    </div>
+                    <div>
+                        <label for="participanteTelefono" class="block text-gray-700 text-base font-semibold mb-2">Teléfono:</label>
+                        <input type="tel" id="participanteTelefono" name="Teléfono" class="shadow-sm appearance-none border border-gray-300 rounded-lg w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500">
+                    </div>
+                    <div>
+                        <label for="participanteEmail" class="block text-gray-700 text-base font-semibold mb-2">Email:</label>
+                        <input type="email" id="participanteEmail" name="Email" class="shadow-sm appearance-none border border-gray-300 rounded-lg w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500">
+                    </div>
+                    <div>
+                        <label for="participanteEstado" class="block text-gray-700 text-base font-semibold mb-2">Estado:</label>
+                        <select id="participanteEstado" name="Estado" class="shadow-sm appearance-none border border-gray-300 rounded-lg w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500">
+                            <option value="Activo">Activo</option>
+                            <option value="Inactivo">Inactivo</option>
                         </select>
-                    <p class="text-xs text-gray-500 mt-1">Mantén Ctrl/Cmd para seleccionar múltiples meses.</p>
+                    </div>
                 </div>
-                <div id="aporteError" class="text-red-500 text-xs italic mb-4 hidden"></div>
-                <div class="flex justify-end space-x-4">
-                    <button type="button" id="cancelAporte" class="bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded hover:bg-gray-400 focus:outline-none focus:shadow-outline">Cancelar</button>
-                    <button type="submit" class="gradient-bg text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline hover:opacity-90 transition-opacity">Registrar</button>
+                <div class="flex items-center justify-end mt-8">
+                    <button type="submit" class="gradient-bg text-white font-bold py-3 px-6 rounded-lg focus:outline-none focus:shadow-outline text-lg hover:opacity-90 transition duration-200 flex items-center"><i class="fas fa-save mr-2"></i>Guardar Participante</button>
                 </div>
+                <p id="participanteFormMessage" class="text-red-600 text-center text-sm mt-5 font-medium"></p>
+            </form>
+        </div>
+    </div>
+
+    <div id="addAporteModal" class="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center z-50 hidden">
+        <div class="bg-white p-10 rounded-2xl shadow-2xl w-full max-w-lg relative modal-content">
+            <button onclick="closeModal('addAporteModal')" class="absolute top-4 right-4 text-gray-500 hover:text-gray-800 text-3xl font-bold leading-none">&times;</button>
+            <h2 class="text-3xl font-bold text-center mb-8 text-gray-800">Registrar Nuevo Aporte</h2>
+            <form id="addAporteForm">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                    <div>
+                        <label for="aporteCodigoParticipante" class="block text-gray-700 text-base font-semibold mb-2">Código Participante:</label>
+                        <input type="text" id="aporteCodigoParticipante" name="codigoParticipante" class="shadow-sm appearance-none border border-gray-300 rounded-lg w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500" required>
+                    </div>
+                    <div>
+                        <label for="aporteMonto" class="block text-gray-700 text-base font-semibold mb-2">Monto:</label>
+                        <input type="number" step="0.01" id="aporteMonto" name="monto" class="shadow-sm appearance-none border border-gray-300 rounded-lg w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500" required>
+                    </div>
+                    <div>
+                        <label for="aporteMetodoPago" class="block text-gray-700 text-base font-semibold mb-2">Método de Pago:</label>
+                        <select id="aporteMetodoPago" name="metodoPago" class="shadow-sm appearance-none border border-gray-300 rounded-lg w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500" required>
+                            <option value="">Seleccione</option>
+                            <option value="Efectivo">Efectivo</option>
+                            <option value="Transferencia">Transferencia Bancaria</option>
+                            <option value="Online">Pago Online</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="aporteReferenciaPago" class="block text-gray-700 text-base font-semibold mb-2">Referencia de Pago (opcional):</label>
+                        <input type="text" id="aporteReferenciaPago" name="referenciaPago" class="shadow-sm appearance-none border border-gray-300 rounded-lg w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500">
+                    </div>
+                    <div class="md:col-span-2">
+                        <label for="aporteMeses" class="block text-gray-700 text-base font-semibold mb-2">Meses Cubiertos (múltiple selección):</label>
+                        <select id="aporteMeses" name="meses" multiple class="shadow-sm appearance-none border border-gray-300 rounded-lg w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 h-40">
+                            <option value="Enero">Enero</option>
+                            <option value="Febrero">Febrero</option>
+                            <option value="Marzo">Marzo</option>
+                            <option value="Abril">Abril</option>
+                            <option value="Mayo">Mayo</option>
+                            <option value="Junio">Junio</option>
+                            <option value="Julio">Julio</option>
+                            <option value="Agosto">Agosto</option>
+                            <option value="Septiembre">Septiembre</option>
+                            <option value="Octubre">Octubre</option>
+                            <option value="Noviembre">Noviembre</option>
+                            <option value="Diciembre">Diciembre</option>
+                        </select>
+                    </div>
+                     <div>
+                        <label for="aporteRecibidoPor" class="block text-gray-700 text-base font-semibold mb-2">Recibido Por:</label>
+                        <input type="text" id="aporteRecibidoPor" name="recibidoPor" class="shadow-sm appearance-none border border-gray-300 rounded-lg w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500">
+                    </div>
+                </div>
+                <div class="flex items-center justify-end mt-8">
+                    <button type="submit" class="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-lg focus:outline-none focus:shadow-outline text-lg hover:opacity-90 transition duration-200 flex items-center"><i class="fas fa-plus-circle mr-2"></i>Registrar Aporte</button>
+                </div>
+                <p id="aporteFormMessage" class="text-red-600 text-center text-sm mt-5 font-medium"></p>
             </form>
         </div>
     </div>
 
 
     <script>
-        // =========================================================
-        // === IMPORTANTE: CONFIGURACIÓN DE LA URL DE TU APPS SCRIPT ===
-        // =========================================================
-        // ¡DEBES REEMPLAZAR ESTA URL CON LA URL DE DESPLIEGUE DE TU APPS SCRIPT!
-        // Ve a tu proyecto de Apps Script -> Desplegar -> Nueva implementación -> Tipo: Aplicación web
-        // Copia la URL que termina en "/exec".
-        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxdxcWFsOcZ5ED9uIPbiDUnYan61x9AgbaWb1FHeqTM5urDZbaxuIxXJKUXtI8y9vGZ/exec'; // <--- ¡CAMBIA ESTO!
-        // =========================================================
+        // ======================== CONFIGURACIÓN CRÍTICA ========================
 
-        let currentUser = null; // Variable global para el usuario logueado
+        // !!! MUY IMPORTANTE: Reemplaza 'YOUR_APPS_SCRIPT_WEB_APP_URL' con la URL real
+        // de TU Google Apps Script después de haberlo desplegado correctamente como aplicación web.
+        // Asegúrate de que tu Apps Script esté desplegado con "Quién tiene acceso: Cualquiera".
+        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwpDK1BbSBCnx-3q8qaSdeS4DG0IEadNEty1sUARIbR1w1ZWWvfGbpaMq1tghHaB9Kk/exec';
 
-        // Función para realizar llamadas a Apps Script mediante Fetch API
-        async function callAppsScript(action, data = {}) {
+        let currentSection = 'dashboard'; // Sección actual mostrada
+        let aportesMetodoChart; // Instancia del gráfico de Chart.js
+        let currentParticipanteDetail = null; // Para guardar los detalles del participante seleccionado
+
+        // ======================== UTILIDADES ========================
+
+        // Función para llamar a Google Apps Script
+        async function callAppScript(action, data) {
+            const url = APPS_SCRIPT_URL;
+            // Verifica que la URL no sea el placeholder
+            if (url === 'YOUR_APPS_SCRIPT_WEB_APP_URL' || !url.startsWith('https://script.google.com/macros/s/')) {
+                alert('ERROR: La URL de Google Apps Script no está configurada correctamente en el archivo HTML. Por favor, edita APPS_SCRIPT_URL.');
+                console.error('ERROR: APPS_SCRIPT_URL no configurada o es incorrecta.');
+                return { success: false, message: 'URL del Apps Script no configurada o incorrecta.' };
+            }
+
+            const payload = new URLSearchParams({
+                action: action,
+                data: JSON.stringify(data)
+            }).toString();
+
             try {
-                const response = await fetch(APPS_SCRIPT_URL, {
+                const response = await fetch(url, {
                     method: 'POST',
+                    body: payload,
+                    // Esta cabecera es crucial para que el Apps Script reciba los datos como 'e.parameter'.
+                    // Si cambias esto a 'application/json', deberás cambiar cómo tu Apps Script
+                    // parsea el cuerpo de la solicitud (e.postData.contents).
                     headers: {
-                        'Content-Type': 'application/json', // Indicamos que enviamos JSON
-                    },
-                    body: JSON.stringify({ // Enviamos la acción y los datos como un objeto JSON
-                        action: action,
-                        data: data
-                    })
+                        'Content-Type': 'application/x-www-form-urlencoded'
+                    }
                 });
 
                 if (!response.ok) {
-                    throw new Error(`Error HTTP! estado: ${response.status}`);
+                    // Si la respuesta no es OK (ej. 404, 500), intentar leer mensaje de error del cuerpo
+                    const errorText = await response.text();
+                    try {
+                        const errorJson = JSON.parse(errorText);
+                        throw new Error(`Error HTTP! Estado: ${response.status} - ${errorJson.message || errorText}`);
+                    } catch {
+                        throw new Error(`Error HTTP! Estado: ${response.status} - ${errorText}`);
+                    }
                 }
-
-                const result = await response.json();
-                return result;
-
+                return await response.json();
             } catch (error) {
                 console.error('Error al llamar a Apps Script:', error);
-                // Retornar un formato de error consistente
-                return { success: false, message: 'Error de comunicación con el servidor: ' + error.message };
+                // Mostrar un mensaje más informativo al usuario sobre posibles causas
+                alert('Error de conexión o servidor. Posibles causas:\n' +
+                      '- La URL de tu Apps Script no está actualizada o es incorrecta.\n' +
+                      '- Tu Apps Script no está desplegado con "Quién tiene acceso: Cualquiera".\n' +
+                      '- Tienes un error en el código de tu Apps Script (revisa los logs de ejecución en Google Apps Script).\n' +
+                      'Detalles técnicos: ' + error.message);
+                return { success: false, message: 'Error de conexión o servidor: ' + error.message };
             }
         }
 
 
-        // Funciones de control de UI y navegación
-        function showContent(html) {
-            document.getElementById('content').innerHTML = html;
-        }
+        function showSection(sectionId) {
+            document.getElementById(currentSection).classList.add('hidden');
+            document.getElementById(sectionId).classList.remove('hidden');
+            currentSection = sectionId;
 
-        function setActiveLink(linkId) {
-            document.querySelectorAll('nav a').forEach(link => {
-                link.classList.remove('active-link');
-                link.classList.remove('bg-gray-700'); // Eliminar la clase hover que puede quedar
-            });
-            const activeLink = document.getElementById(linkId);
-            if (activeLink) {
-                activeLink.classList.add('active-link', 'bg-gray-700');
-            }
-        }
+            // Actualizar título de la sección
+            const titleMap = {
+                'dashboard': 'Dashboard',
+                'participantes': 'Gestión de Participantes',
+                'aportes': 'Gestión de Aportes',
+                'participanteDetalle': 'Detalle del Participante'
+            };
+            document.getElementById('sectionTitle').textContent = titleMap[sectionId] || 'ONG Aportes';
 
-        function closeSidebar() {
+            // Cerrar sidebar en móviles y ocultar overlay
             if (window.innerWidth < 768) {
                 document.getElementById('sidebar').classList.add('sidebar-closed');
+                document.getElementById('sidebarOverlay').style.display = 'none';
+            }
+
+            // Cargar datos según la sección
+            if (sectionId === 'dashboard') {
+                loadDashboardData();
+            } else if (sectionId === 'participantes') {
+                loadParticipantes();
+            } else if (sectionId === 'aportes') {
+                loadAportes();
             }
         }
 
-
-        // =========================================================
-        // === VISTAS DE LA APLICACIÓN ===
-        // =========================================================
-
-        async function loadDashboard() {
-            setActiveLink('linkDashboard');
-            closeSidebar();
-            try {
-                const response = await callAppsScript('getDashboardData');
-                if (response.success) {
-                    const data = response.data;
-                    const dashboardHtml = `
-                        <h2 class="text-3xl font-bold text-gray-800 mb-6">Dashboard</h2>
-                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                            <div class="bg-white p-6 rounded-lg shadow-md flex items-center justify-between card-hover">
-                                <div>
-                                    <h3 class="text-lg font-medium text-gray-600">Total Aportes</h3>
-                                    <p class="text-3xl font-bold text-gray-900">$${data.totalAportes.toLocaleString('es-ES')}</p>
-                                </div>
-                                <i class="fas fa-money-bill-wave text-5xl text-blue-500 opacity-20"></i>
-                            </div>
-                            <div class="bg-white p-6 rounded-lg shadow-md flex items-center justify-between card-hover">
-                                <div>
-                                    <h3 class="text-lg font-medium text-gray-600">Participantes Activos</h3>
-                                    <p class="text-3xl font-bold text-gray-900">${data.participantesActivos}</p>
-                                </div>
-                                <i class="fas fa-user-check text-5xl text-green-500 opacity-20"></i>
-                            </div>
-                            <div class="bg-white p-6 rounded-lg shadow-md flex items-center justify-between card-hover">
-                                <div>
-                                    <h3 class="text-lg font-medium text-gray-600">Total Pendiente</h3>
-                                    <p class="text-3xl font-bold text-gray-900">$${data.totalPendiente.toLocaleString('es-ES')}</p>
-                                </div>
-                                <i class="fas fa-hand-holding-usd text-5xl text-red-500 opacity-20"></i>
-                            </div>
-                            <div class="bg-white p-6 rounded-lg shadow-md flex items-center justify-between card-hover">
-                                <div>
-                                    <h3 class="text-lg font-medium text-gray-600">Nuevos Aportes (Hoy)</h3>
-                                    <p class="text-3xl font-bold text-gray-900">N/A</p>
-                                </div>
-                                <i class="fas fa-calendar-day text-5xl text-purple-500 opacity-20"></i>
-                            </div>
-                        </div>
-
-                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                            <div class="bg-white p-6 rounded-lg shadow-md">
-                                <h3 class="text-xl font-semibold text-gray-800 mb-4">Aportes Mensuales</h3>
-                                <canvas id="monthlyAportesChart"></canvas>
-                            </div>
-
-                            <div class="bg-white p-6 rounded-lg shadow-md">
-                                <h3 class="text-xl font-semibold text-gray-800 mb-4">Últimos Aportes</h3>
-                                <div class="overflow-x-auto">
-                                    <table class="min-w-full bg-white">
-                                        <thead>
-                                            <tr>
-                                                <th class="py-2 px-4 border-b text-left">Participante</th>
-                                                <th class="py-2 px-4 border-b text-left">Monto</th>
-                                                <th class="py-2 px-4 border-b text-left">Fecha</th>
-                                                <th class="py-2 px-4 border-b text-left">Meses</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            ${data.ultimosAportes.map(aporte => `
-                                                <tr>
-                                                    <td class="py-2 px-4 border-b">${aporte.participanteNombre}</td>
-                                                    <td class="py-2 px-4 border-b">$${aporte.monto.toLocaleString('es-ES')}</td>
-                                                    <td class="py-2 px-4 border-b">${new Date(aporte.fecha).toLocaleDateString('es-ES')}</td>
-                                                    <td class="py-2 px-4 border-b">${aporte.meses.join(', ')}</td>
-                                                </tr>
-                                            `).join('')}
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                    showContent(dashboardHtml);
-                    renderMonthlyAportesChart(data.aportesMensuales);
-
-                } else {
-                    showContent(`<p class="text-red-500">${response.message}</p>`);
-                }
-            } catch (error) {
-                console.error('Error al cargar dashboard:', error);
-                showContent('<p class="text-red-500">Error al cargar el dashboard.</p>');
-            }
-        }
-
-        async function loadParticipantes() {
-            setActiveLink('linkParticipantes');
-            closeSidebar();
-            try {
-                const response = await callAppsScript('getParticipantes');
-                if (response.success) {
-                    let participantesHtml = `
-                        <h2 class="text-3xl font-bold text-gray-800 mb-6">Gestión de Participantes</h2>
-                        <div class="flex justify-end mb-4">
-                            <button id="addParticipantBtn" class="gradient-bg text-white font-bold py-2 px-4 rounded hover:opacity-90 transition-opacity">
-                                <i class="fas fa-plus mr-2"></i> Nuevo Participante
-                            </button>
-                        </div>
-                        <div class="bg-white p-6 rounded-lg shadow-md overflow-x-auto">
-                            <table class="min-w-full bg-white">
-                                <thead>
-                                    <tr>
-                                        <th class="py-2 px-4 border-b text-left">Código</th>
-                                        <th class="py-2 px-4 border-b text-left">Nombre</th>
-                                        <th class="py-2 px-4 border-b text-left">Ciudadanía</th>
-                                        <th class="py-2 px-4 border-b text-left">Tutora</th>
-                                        <th class="py-2 px-4 border-b text-left">Estado</th>
-                                        <th class="py-2 px-4 border-b text-left">Pendiente</th>
-                                        <th class="py-2 px-4 border-b text-left">Acciones</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    ${response.data.map(p => `
-                                        <tr class="hover:bg-gray-50">
-                                            <td class="py-2 px-4 border-b">${p.codigo}</td>
-                                            <td class="py-2 px-4 border-b">${p.nombre}</td>
-                                            <td class="py-2 px-4 border-b">${p.ciudadania}</td>
-                                            <td class="py-2 px-4 border-b">${p.tutora}</td>
-                                            <td class="py-2 px-4 border-b">
-                                                <span class="px-2 py-1 rounded-full text-xs font-semibold ${p.estado === 'Activo' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}">
-                                                    ${p.estado}
-                                                </span>
-                                            </td>
-                                            <td class="py-2 px-4 border-b">$${p.totalPendiente.toLocaleString('es-ES')} (${p.mesesPendientes.length} meses)</td>
-                                            <td class="py-2 px-4 border-b">
-                                                <button class="text-blue-600 hover:text-blue-900 mr-2 edit-participant-btn" data-codigo="${p.codigo}" data-nombre="${p.nombre}" data-ciudadania="${p.ciudadania}" data-tutora="${p.tutora}">
-                                                    <i class="fas fa-edit"></i>
-                                                </button>
-                                                <button class="text-red-600 hover:text-red-900 delete-participant-btn" data-codigo="${p.codigo}">
-                                                    <i class="fas fa-trash-alt"></i>
-                                                </button>
-                                                <button class="text-purple-600 hover:text-purple-900 ml-2 view-detail-btn" data-codigo="${p.codigo}">
-                                                    <i class="fas fa-eye"></i>
-                                                </button>
-                                            </td>
-                                        </tr>
-                                    `).join('')}
-                                </tbody>
-                            </table>
-                        </div>
-                    `;
-                    showContent(participantesHtml);
-                    document.getElementById('addParticipantBtn').addEventListener('click', () => openParticipantModal('add'));
-                    document.querySelectorAll('.edit-participant-btn').forEach(button => {
-                        button.addEventListener('click', (e) => openParticipantModal('edit', e.currentTarget.dataset));
-                    });
-                    document.querySelectorAll('.delete-participant-btn').forEach(button => {
-                        button.addEventListener('click', (e) => deleteParticipant(e.currentTarget.dataset.codigo));
-                    });
-                    document.querySelectorAll('.view-detail-btn').forEach(button => {
-                        button.addEventListener('click', (e) => {
-                            const codigo = e.currentTarget.dataset.codigo;
-                            window.location.hash = `#participante=${codigo}`; // Change URL hash
-                            loadParticipanteDetalle(codigo); // Load detail directly
-                        });
-                    });
-
-                } else {
-                    showContent(`<p class="text-red-500">${response.message}</p>`);
-                }
-            } catch (error) {
-                console.error('Error al cargar participantes:', error);
-                showContent('<p class="text-red-500">Error al cargar los participantes.</p>');
-            }
-        }
-
-
-        async function loadAportes() {
-            setActiveLink('linkAportes');
-            closeSidebar();
-            try {
-                const response = await callAppsScript('getAportes');
-                if (response.success) {
-                    const aportesHtml = `
-                        <h2 class="text-3xl font-bold text-gray-800 mb-6">Gestión de Aportes</h2>
-                        <div class="flex justify-end mb-4">
-                            <button id="addAporteBtn" class="gradient-bg text-white font-bold py-2 px-4 rounded hover:opacity-90 transition-opacity">
-                                <i class="fas fa-plus mr-2"></i> Registrar Aporte
-                            </button>
-                        </div>
-                        <div class="bg-white p-6 rounded-lg shadow-md overflow-x-auto">
-                            <table class="min-w-full bg-white">
-                                <thead>
-                                    <tr>
-                                        <th class="py-2 px-4 border-b text-left">ID</th>
-                                        <th class="py-2 px-4 border-b text-left">Código</th>
-                                        <th class="py-2 px-4 border-b text-left">Participante</th>
-                                        <th class="py-2 px-4 border-b text-left">Mes(es)</th>
-                                        <th class="py-2 px-4 border-b text-left">Monto</th>
-                                        <th class="py-2 px-4 border-b text-left">Fecha</th>
-                                        <th class="py-2 px-4 border-b text-left">Tutora</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    ${response.data.map(a => `
-                                        <tr class="hover:bg-gray-50">
-                                            <td class="py-2 px-4 border-b">${a.id}</td>
-                                            <td class="py-2 px-4 border-b">${a.participanteCodigo}</td>
-                                            <td class="py-2 px-4 border-b">${a.participanteNombre}</td>
-                                            <td class="py-2 px-4 border-b">${a.meses.join(', ')}</td>
-                                            <td class="py-2 px-4 border-b">$${a.total.toLocaleString('es-ES')}</td>
-                                            <td class="py-2 px-4 border-b">${a.fecha ? new Date(a.fecha).toLocaleDateString('es-ES') : 'N/A'}</td>
-                                            <td class="py-2 px-4 border-b">${a.tutora}</td>
-                                        </tr>
-                                    `).join('')}
-                                </tbody>
-                            </table>
-                        </div>
-                    `;
-                    showContent(aportesHtml);
-                    document.getElementById('addAporteBtn').addEventListener('click', openAporteModal);
-                } else {
-                    showContent(`<p class="text-red-500">${response.message}</p>`);
-                }
-            } catch (error) {
-                console.error('Error al cargar aportes:', error);
-                showContent('<p class="text-red-500">Error al cargar los aportes.</p>');
-            }
-        }
-
-
-        async function loadReportes() {
-            setActiveLink('linkReportes');
-            closeSidebar();
-            // Esto es un placeholder. Aquí integrarías tu lógica de reportes.
-            showContent(`
-                <h2 class="text-3xl font-bold text-gray-800 mb-6">Generación de Reportes</h2>
-                <div class="bg-white p-6 rounded-lg shadow-md">
-                    <p>Aquí podrás generar diversos reportes sobre participantes y aportes.</p>
-                    <p class="mt-4 text-gray-600">Funcionalidad en desarrollo...</p>
-                </div>
-            `);
-        }
-
-        async function loadParticipanteDetalle(codigo) {
-            closeSidebar();
-            try {
-                const response = await callAppsScript('getParticipanteDetalle', { codigo: codigo });
-                if (response.success) {
-                    const participante = response.data;
-                    let detailHtml = `
-                        <h2 class="text-3xl font-bold text-gray-800 mb-6">Detalle de Participante</h2>
-                        <button onclick="window.history.back()" class="text-blue-600 hover:text-blue-800 mb-4"><i class="fas fa-arrow-left mr-2"></i> Volver a Participantes</button>
-                        <div class="bg-white p-6 rounded-lg shadow-md">
-                            <h3 class="text-2xl font-bold mb-4">${participante.nombre} (${participante.codigo})</h3>
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                                <p><span class="font-medium">Ciudadanía:</span> ${participante.ciudadania}</p>
-                                <p><span class="font-medium">Tutora:</span> ${participante.tutora}</p>
-                                <p><span class="font-medium">Fecha Registro:</span> ${participante.fecharegistro}</p>
-                                <p><span class="font-medium">Estado:</span> <span class="px-2 py-1 rounded-full text-xs font-semibold ${participante.estado === 'Activo' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}">${participante.estado}</span></p>
-                                <p><span class="font-medium">Último Pago:</span> ${participante.ultimoPago}</p>
-                                <p><span class="font-medium">Total Pendiente:</span> $${participante.totalPendiente.toLocaleString('es-ES')}</p>
-                            </div>
-
-                            <h4 class="text-xl font-semibold text-gray-800 mb-3">Matriz de Pagos Anual</h4>
-                            <div class="overflow-x-auto mb-6">
-                                <table class="min-w-full bg-white border border-gray-200">
-                                    <thead>
-                                        <tr class="bg-gray-100">
-                                            <th class="py-2 px-4 border-b border-r text-left">Mes</th>
-                                            <th class="py-2 px-4 border-b border-r text-left">Año</th>
-                                            <th class="py-2 px-4 border-b border-r text-left">Estado</th>
-                                            <th class="py-2 px-4 border-b text-left">Monto Pagado</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        ${participante.matrizPagos.map(item => `
-                                            <tr class="${item.estado === 'Pagado' ? 'bg-green-50' : 'bg-red-50'} hover:bg-gray-100">
-                                                <td class="py-2 px-4 border-b border-r">${item.mes}</td>
-                                                <td class="py-2 px-4 border-b border-r">${item.año}</td>
-                                                <td class="py-2 px-4 border-b border-r">${item.estado}</td>
-                                                <td class="py-2 px-4 border-b">$${item.montoPagado.toLocaleString('es-ES')}</td>
-                                            </tr>
-                                        `).join('')}
-                                    </tbody>
-                                </table>
-                            </div>
-                            
-                            <h4 class="text-xl font-semibold text-gray-800 mb-3">Historial de Aportes</h4>
-                            <div class="overflow-x-auto">
-                                <table class="min-w-full bg-white border border-gray-200">
-                                    <thead>
-                                        <tr class="bg-gray-100">
-                                            <th class="py-2 px-4 border-b text-left">ID Aporte</th>
-                                            <th class="py-2 px-4 border-b text-left">Mes(es)</th>
-                                            <th class="py-2 px-4 border-b text-left">Monto Total</th>
-                                            <th class="py-2 px-4 border-b text-left">Fecha Aporte</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        ${participante.aportes.map(aporte => `
-                                            <tr class="hover:bg-gray-50">
-                                                <td class="py-2 px-4 border-b">${aporte.id}</td>
-                                                <td class="py-2 px-4 border-b">${aporte.meses.join(', ')}</td>
-                                                <td class="py-2 px-4 border-b">$${aporte.total.toLocaleString('es-ES')}</td>
-                                                <td class="py-2 px-4 border-b">${new Date(aporte.fecha).toLocaleDateString('es-ES')}</td>
-                                            </tr>
-                                        `).join('')}
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    `;
-                    showContent(detailHtml);
-                } else {
-                    showContent(`<p class="text-red-500">${response.message}</p>`);
-                }
-            } catch (error) {
-                console.error('Error al cargar detalle del participante:', error);
-                showContent('<p class="text-red-500">Error al cargar el detalle del participante.</p>');
-            }
-        }
-
-
-        // =========================================================
-        // === MODALES Y FORMULARIOS ===
-        // =========================================================
-
-        function openParticipantModal(mode, data = {}) {
-            const modal = document.getElementById('participantModal');
-            const form = document.getElementById('participantForm');
-            const title = document.getElementById('participantModalTitle');
-            const submitBtn = form.querySelector('button[type="submit"]');
-            const errorDiv = document.getElementById('participantError');
-
-            errorDiv.classList.add('hidden'); // Ocultar errores previos
-            form.reset(); // Limpiar formulario
-
-            if (mode === 'add') {
-                title.textContent = 'Registrar Participante';
-                submitBtn.textContent = 'Guardar';
-                document.getElementById('originalCodigo').value = '';
-                document.getElementById('p-codigo').readOnly = false;
-            } else { // mode === 'edit'
-                title.textContent = 'Modificar Participante';
-                submitBtn.textContent = 'Actualizar';
-                document.getElementById('originalCodigo').value = data.codigo;
-                document.getElementById('p-codigo').value = data.codigo;
-                document.getElementById('p-nombre').value = data.nombre;
-                document.getElementById('p-ciudadania').value = data.ciudadania;
-                document.getElementById('p-tutora').value = data.tutora;
-                document.getElementById('p-codigo').readOnly = false; // Permitir editar código si es necesario
-            }
+        function openModal(modalId, mode = 'add', participanteCodigo = null) {
+            const modal = document.getElementById(modalId);
             modal.classList.remove('hidden');
+
+            if (modalId === 'addEditParticipanteModal') {
+                document.getElementById('participanteFormMode').value = mode;
+                const title = document.getElementById('addEditParticipanteTitle');
+                const form = document.getElementById('addEditParticipanteForm');
+                form.reset(); // Limpiar formulario
+                document.getElementById('participanteFormMessage').textContent = ''; // Limpiar mensaje
+
+                if (mode === 'add') {
+                    title.textContent = 'Registrar Participante';
+                    document.getElementById('participanteCodigo').readOnly = false; // Editable en modo añadir
+                } else if (mode === 'edit' && participanteCodigo) {
+                    title.textContent = 'Modificar Participante';
+                    document.getElementById('participanteCodigo').value = participanteCodigo;
+                    document.getElementById('participanteCodigo').readOnly = true; // No editable en modo editar
+                    loadParticipanteParaEditar(participanteCodigo);
+                }
+            } else if (modalId === 'addAporteModal') {
+                document.getElementById('addAporteForm').reset();
+                document.getElementById('aporteFormMessage').textContent = ''; // Limpiar mensaje
+            }
         }
 
-        function closeParticipantModal() {
-            document.getElementById('participantModal').classList.add('hidden');
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.add('hidden');
+            // Limpiar mensajes al cerrar cualquier modal
+            document.getElementById('loginMessage').textContent = '';
+            document.getElementById('participanteFormMessage').textContent = '';
+            document.getElementById('aporteFormMessage').textContent = '';
         }
 
-        document.getElementById('participantForm').addEventListener('submit', async function (e) {
+        // ======================== AUTENTICACIÓN ========================
+
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            const originalCodigo = document.getElementById('originalCodigo').value;
-            const formData = {
-                codigo: document.getElementById('p-codigo').value,
-                nombre: document.getElementById('p-nombre').value,
-                ciudadania: document.getElementById('p-ciudadania').value,
-                tutora: document.getElementById('p-tutora').value,
-            };
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const loginMessage = document.getElementById('loginMessage');
 
-            const errorDiv = document.getElementById('participantError');
-            errorDiv.classList.add('hidden');
+            const result = await callAppScript('login', { username, password });
 
-            try {
-                let response;
-                if (originalCodigo) { // Editing existing participant
-                    response = await callAppsScript('modificarParticipante', { ...formData, originalCodigo: originalCodigo });
-                } else { // Adding new participant
-                    response = await callAppsScript('registrarParticipante', formData);
-                }
-
-                if (response.success) {
-                    closeParticipantModal();
-                    loadParticipantes(); // Recargar la tabla de participantes
-                    alert(response.message);
-                } else {
-                    errorDiv.textContent = response.message;
-                    errorDiv.classList.remove('hidden');
-                }
-            } catch (error) {
-                console.error('Error en formulario de participante:', error);
-                errorDiv.textContent = 'Ocurrió un error inesperado al guardar.';
-                errorDiv.classList.remove('hidden');
+            if (result.success) {
+                localStorage.setItem('loggedIn', 'true');
+                localStorage.setItem('username', username);
+                closeModal('loginModal');
+                checkLoginStatus(); // Refrescar estado y mostrar dashboard
+            } else {
+                loginMessage.textContent = result.message || 'Error de autenticación.';
             }
         });
 
-        document.getElementById('cancelParticipant').addEventListener('click', closeParticipantModal);
-
-        async function deleteParticipant(codigo) {
-            if (confirm(`¿Estás seguro de eliminar al participante con código ${codigo}? Esta acción es irreversible.`)) {
-                try {
-                    const response = await callAppsScript('eliminarParticipante', { codigo: codigo });
-                    if (response.success) {
-                        loadParticipantes(); // Recargar la tabla
-                        alert(response.message);
-                    } else {
-                        alert(`Error: ${response.message}`);
-                    }
-                } catch (error) {
-                    console.error('Error al eliminar participante:', error);
-                    alert('Ocurrió un error inesperado al eliminar el participante.');
+        function checkLoginStatus() {
+            const isLoggedIn = localStorage.getItem('loggedIn') === 'true';
+            if (isLoggedIn) {
+                document.getElementById('loginModal').classList.add('hidden');
+                document.getElementById('loggedInUser').textContent = `Usuario: ${localStorage.getItem('username')}`;
+                showSection('dashboard');
+                // Ajustar el margen del contenido principal solo en desktop, en móvil se controla con el overlay
+                if (window.innerWidth >= 768) {
+                    document.getElementById('mainContent').style.marginLeft = '16rem';
                 }
+            } else {
+                document.getElementById('loginModal').classList.remove('hidden');
+                document.getElementById('mainContent').style.marginLeft = '0'; // Sin sidebar cuando no logueado
             }
         }
 
-
-        async function openAporteModal() {
-            const modal = document.getElementById('aporteModal');
-            const form = document.getElementById('aporteForm');
-            const errorDiv = document.getElementById('aporteError');
-            const mesesSelect = document.getElementById('a-meses');
-
-            errorDiv.classList.add('hidden');
-            form.reset();
-            mesesSelect.innerHTML = '<option value="">Cargando...</option>'; // Placeholder
-
-            // Set default date to today
-            const today = new Date();
-            const yyyy = today.getFullYear();
-            const mm = String(today.getMonth() + 1).padStart(2, '0'); // Months are 0-indexed
-            const dd = String(today.getDate()).padStart(2, '0');
-            document.getElementById('a-fecha').value = `${yyyy}-${mm}-${dd}`;
-
-
-            modal.classList.remove('hidden');
-
-            // Autocompletar nombre del participante y cargar meses disponibles al escribir el código
-            document.getElementById('a-codigo').addEventListener('input', async function () {
-                const codigo = this.value;
-                const nombreInput = document.getElementById('a-nombre-participante');
-                mesesSelect.innerHTML = ''; // Clear previous options
-
-                if (codigo.length > 0) {
-                    const response = await callAppsScript('getParticipanteDetalle', { codigo: codigo });
-                    if (response.success && response.data) {
-                        nombreInput.value = response.data.nombre;
-                        const mesesDisponibles = response.data.mesesPendientes;
-                        if (mesesDisponibles.length > 0) {
-                            mesesDisponibles.forEach(mes => {
-                                const option = document.createElement('option');
-                                option.value = mes;
-                                option.textContent = mes;
-                                mesesSelect.appendChild(option);
-                            });
-                        } else {
-                            mesesSelect.innerHTML = '<option value="">Todos los meses pagados o no disponibles</option>';
-                        }
-                    } else {
-                        nombreInput.value = 'Participante no encontrado';
-                        mesesSelect.innerHTML = '<option value="">No disponible</option>';
-                    }
-                } else {
-                    nombreInput.value = '';
-                    mesesSelect.innerHTML = '';
-                }
-            }, { once: false }); // Allow multiple inputs
-
-            // Populate months initially if a code is pre-filled (e.g., from a URL param) - unlikely for this modal
-            // but good practice.
-            // For now, it relies on the 'input' event.
+        function logout() {
+            localStorage.removeItem('loggedIn');
+            localStorage.removeItem('username');
+            checkLoginStatus();
         }
 
-        function closeAporteModal() {
-            document.getElementById('aporteModal').classList.add('hidden');
-            // Remove event listener to prevent multiple bindings on subsequent opens
-            document.getElementById('a-codigo').removeEventListener('input', () => {});
-        }
+        // ======================== DASHBOARD ========================
 
-        document.getElementById('aporteForm').addEventListener('submit', async function (e) {
-            e.preventDefault();
-            const errorDiv = document.getElementById('aporteError');
-            errorDiv.classList.add('hidden');
+        async function loadDashboardData() {
+            const result = await callAppScript('getDashboardData', {});
+            if (result.success) {
+                document.getElementById('totalAportes').textContent = `$${result.totalAportes ? result.totalAportes.toLocaleString() : '0'}`;
+                document.getElementById('totalParticipantes').textContent = result.totalParticipantes || '0';
+                document.getElementById('participantesActivos').textContent = result.participantesActivos || '0';
+                document.getElementById('participantesInactivos').textContent = result.participantesInactivos || '0';
 
-            const selectedMonths = Array.from(document.getElementById('a-meses').selectedOptions).map(option => option.value);
-
-            const formData = {
-                codigo: document.getElementById('a-codigo').value,
-                monto: parseFloat(document.getElementById('a-monto').value),
-                fecha: document.getElementById('a-fecha').value,
-                meses: selectedMonths,
-            };
-
-            if (selectedMonths.length === 0) {
-                errorDiv.textContent = 'Debes seleccionar al menos un mes para el aporte.';
-                errorDiv.classList.remove('hidden');
-                return;
-            }
-
-            try {
-                const response = await callAppsScript('registrarAporte', formData);
-                if (response.success) {
-                    closeAporteModal();
-                    loadAportes(); // Recargar la tabla de aportes
-                    alert(response.message);
-                } else {
-                    errorDiv.textContent = response.message;
-                    errorDiv.classList.remove('hidden');
+                // Chart: Aportes por Método de Pago
+                const ctx = document.getElementById('aportesMetodoChart').getContext('2d');
+                if (aportesMetodoChart) {
+                    aportesMetodoChart.destroy(); // Destruir instancia anterior si existe
                 }
-            } catch (error) {
-                console.error('Error en formulario de aporte:', error);
-                errorDiv.textContent = 'Ocurrió un error inesperado al registrar el aporte.';
-                errorDiv.classList.remove('hidden');
-            }
-        });
 
-        document.getElementById('cancelAporte').addEventListener('click', closeAporteModal);
+                const labels = Object.keys(result.aportesPorMetodo);
+                const data = Object.values(result.aportesPorMetodo);
 
-
-        // =========================================================
-        // === GRÁFICOS ===
-        // =========================================================
-
-        let monthlyAportesChart = null; // Variable para mantener la instancia del gráfico
-
-        function renderMonthlyAportesChart(data) {
-            const ctx = document.getElementById('monthlyAportesChart').getContext('2d');
-
-            const labels = Object.keys(data).sort(); // Ordenar por año-mes
-            const values = labels.map(key => data[key]);
-
-            if (monthlyAportesChart) {
-                monthlyAportesChart.destroy(); // Destruir instancia anterior si existe
-            }
-
-            monthlyAportesChart = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        label: 'Aportes Mensuales ($)',
-                        data: values,
-                        backgroundColor: 'rgba(102, 126, 234, 0.7)',
-                        borderColor: 'rgba(102, 126, 234, 1)',
-                        borderWidth: 1
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            title: {
-                                display: true,
-                                text: 'Monto ($)'
-                            }
-                        },
-                        x: {
-                            title: {
-                                display: true,
-                                text: 'Mes'
-                            }
-                        }
+                aportesMetodoChart = new Chart(ctx, {
+                    type: 'pie',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            data: data,
+                            backgroundColor: [
+                                '#6200EE', '#BB86FC', '#03DAC6', '#FF0266', '#FB8C00', '#4CAF50'
+                            ], // Colores más modernos
+                            hoverOffset: 8
+                        }]
                     },
-                    plugins: {
-                        tooltip: {
-                            callbacks: {
-                                label: function(context) {
-                                    return context.dataset.label + ': $' + context.parsed.y.toLocaleString('es-ES');
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'top',
+                                labels: {
+                                    font: {
+                                        size: 14
+                                    }
+                                }
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        let label = context.label || '';
+                                        if (label) {
+                                            label += ': ';
+                                        }
+                                        if (context.parsed !== null) {
+                                            label += `$${context.parsed.toLocaleString()}`;
+                                        }
+                                        return label;
+                                    }
                                 }
                             }
                         }
                     }
-                }
-            });
-        }
+                });
 
-
-        // =========================================================
-        // === AUTENTICACIÓN Y ESTADO DE LA SESIÓN ===
-        // =========================================================
-
-        function checkLoginStatus() {
-            const storedUser = localStorage.getItem('currentUser');
-            if (storedUser) {
-                currentUser = JSON.parse(storedUser);
-                document.getElementById('loginModal').classList.add('hidden');
-                document.getElementById('loggedInUser').textContent = `Hola, ${currentUser.usuario}`;
-                loadDashboard(); // Cargar dashboard después de login
-            } else {
-                document.getElementById('loginModal').classList.remove('hidden');
-            }
-        }
-
-        document.getElementById('loginForm').addEventListener('submit', async function (e) {
-            e.preventDefault();
-            const username = document.getElementById('username').value;
-            const password = document.getElementById('password').value;
-            const loginErrorDiv = document.getElementById('loginError');
-            loginErrorDiv.classList.add('hidden'); // Ocultar errores previos
-
-            try {
-                const response = await callAppsScript('login', { usuario: username, password: password });
-                if (response.success) {
-                    currentUser = response.user;
-                    localStorage.setItem('currentUser', JSON.stringify(currentUser));
-                    document.getElementById('loginModal').classList.add('hidden');
-                    document.getElementById('loggedInUser').textContent = `Hola, ${currentUser.usuario}`;
-                    loadDashboard(); // Cargar dashboard después del login exitoso
+                // Tabla de Últimos Aportes
+                const latestAportesTableBody = document.getElementById('latestAportesTableBody');
+                latestAportesTableBody.innerHTML = ''; // Limpiar tabla
+                if (result.aportesRecientes && result.aportesRecientes.length > 0) {
+                    result.aportesRecientes.forEach(aporte => {
+                        const row = latestAportesTableBody.insertRow();
+                        row.insertCell().textContent = aporte.codigoParticipante;
+                        row.insertCell().textContent = `$${aporte.monto ? aporte.monto.toLocaleString() : '0'}`;
+                        row.insertCell().textContent = aporte.fecha;
+                    });
                 } else {
-                    loginErrorDiv.textContent = response.message;
-                    loginErrorDiv.classList.remove('hidden');
+                    latestAportesTableBody.innerHTML = '<tr><td colspan="3" class="text-center py-4 text-gray-600">No hay aportes recientes.</td></tr>';
                 }
-            } catch (error) {
-                console.error('Error durante el login:', error);
-                loginErrorDiv.textContent = 'Error de red o servidor. Intenta de nuevo.';
-                loginErrorDiv.classList.remove('hidden');
+
+            } else {
+                alert('Error al cargar datos del dashboard: ' + result.message);
+            }
+        }
+
+        // ======================== GESTIÓN PARTICIPANTES ========================
+
+        async function loadParticipantes() {
+            const filterCodigo = document.getElementById('filterCodigo').value;
+            const filterNombre = document.getElementById('filterNombre').value;
+            const filterTutora = document.getElementById('filterTutora').value;
+
+            const filters = {
+                codigo: filterCodigo,
+                nombre: filterNombre,
+                tutora: filterTutora
+            };
+
+            const result = await callAppScript('getParticipantes', filters);
+            const tableBody = document.getElementById('participantesTableBody');
+            tableBody.innerHTML = ''; // Limpiar tabla
+            document.getElementById('noParticipantesMessage').classList.add('hidden');
+
+            if (result.success && result.participantes && result.participantes.length > 0) {
+                result.participantes.forEach(participante => {
+                    const row = tableBody.insertRow();
+                    row.insertCell().textContent = participante['Código'];
+                    row.insertCell().textContent = participante['Nombre Completo'];
+                    row.insertCell().textContent = participante['Tutora Asignada'];
+                    row.insertCell().textContent = participante['Estado'];
+
+                    const actionsCell = row.insertCell();
+                    actionsCell.className = 'flex items-center space-x-2'; // Para alinear botones
+                    actionsCell.innerHTML = `
+                        <button onclick="viewParticipanteDetalle('${participante['Código']}')" class="bg-blue-600 text-white px-4 py-2 rounded-md text-sm hover:bg-blue-700 transition duration-200 flex items-center"><i class="fas fa-eye"></i></button>
+                        <button onclick="openModal('addEditParticipanteModal', 'edit', '${participante['Código']}')" class="bg-yellow-600 text-white px-4 py-2 rounded-md text-sm hover:bg-yellow-700 transition duration-200 flex items-center"><i class="fas fa-edit"></i></button>
+                        <button onclick="confirmDeleteParticipante('${participante['Código']}')" class="bg-red-600 text-white px-4 py-2 rounded-md text-sm hover:bg-red-700 transition duration-200 flex items-center"><i class="fas fa-trash-alt"></i></button>
+                    `;
+                });
+            } else {
+                document.getElementById('noParticipantesMessage').classList.remove('hidden');
+            }
+        }
+
+        function clearParticipanteFilters() {
+            document.getElementById('filterCodigo').value = '';
+            document.getElementById('filterNombre').value = '';
+            document.getElementById('filterTutora').value = '';
+            loadParticipantes(); // Recargar todos los participantes
+        }
+
+        document.getElementById('addEditParticipanteForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const form = e.target;
+            const formData = new FormData(form);
+            const participanteData = {};
+            for (let [key, value] of formData.entries()) {
+                participanteData[key] = value;
+            }
+
+            const mode = document.getElementById('participanteFormMode').value;
+            const messageElement = document.getElementById('participanteFormMessage');
+            messageElement.textContent = 'Procesando...';
+            messageElement.classList.remove('text-red-600', 'text-green-600');
+            messageElement.classList.add('text-gray-600'); // Temporal para procesamiento
+
+            let result;
+
+            if (mode === 'add') {
+                result = await callAppScript('registrarParticipante', participanteData);
+            } else { // edit mode
+                result = await callAppScript('modificarParticipante', participanteData);
+            }
+
+            if (result.success) {
+                messageElement.textContent = result.message;
+                messageElement.classList.remove('text-red-600', 'text-gray-600');
+                messageElement.classList.add('text-green-600');
+                setTimeout(() => {
+                    closeModal('addEditParticipanteModal');
+                    loadParticipantes();
+                    if (currentSection === 'participanteDetalle' && mode === 'edit') {
+                         loadParticipanteDetalle(participanteData['Código']); // Recargar detalle si estábamos allí
+                    }
+                }, 1500);
+            } else {
+                messageElement.textContent = result.message || 'Error al guardar participante.';
+                messageElement.classList.remove('text-green-600', 'text-gray-600');
+                messageElement.classList.add('text-red-600');
             }
         });
 
-        document.getElementById('logoutButton').addEventListener('click', function (e) {
+        async function loadParticipanteParaEditar(codigo) {
+            const result = await callAppScript('getParticipanteDetalle', { codigo: codigo });
+            if (result.success && result.participante) {
+                const participante = result.participante;
+                document.getElementById('participanteCodigo').value = participante['Código'] || '';
+                document.getElementById('participanteNombre').value = participante['Nombre Completo'] || '';
+                document.getElementById('participanteFechaNacimiento').value = participante['Fecha de Nacimiento'] ? new Date(participante['Fecha de Nacimiento']).toISOString().split('T')[0] : '';
+                document.getElementById('participanteTutora').value = participante['Tutora Asignada'] || '';
+                document.getElementById('participanteDireccion').value = participante['Dirección'] || '';
+                document.getElementById('participanteTelefono').value = participante['Teléfono'] || '';
+                document.getElementById('participanteEmail').value = participante['Email'] || '';
+                document.getElementById('participanteEstado').value = participante['Estado'] || 'Activo';
+            } else {
+                alert('Error al cargar datos del participante para edición: ' + result.message);
+                closeModal('addEditParticipanteModal');
+            }
+        }
+
+
+        function confirmDeleteParticipante(codigo) {
+            if (confirm(`¿Estás seguro de que quieres eliminar al participante con código ${codigo}? Esta acción es irreversible.`)) {
+                deleteParticipante(codigo);
+            }
+        }
+
+        async function deleteParticipante(codigo) {
+            const result = await callAppScript('eliminarParticipante', { codigo: codigo });
+            if (result.success) {
+                alert(result.message);
+                loadParticipantes(); // Recargar la lista después de eliminar
+                if (currentSection === 'participanteDetalle') {
+                    showSection('participantes'); // Volver a la lista si estábamos viendo el detalle
+                }
+            } else {
+                alert('Error al eliminar participante: ' + result.message);
+            }
+        }
+
+        async function viewParticipanteDetalle(codigo) {
+            const result = await callAppScript('getParticipanteDetalle', { codigo: codigo });
+            if (result.success && result.participante) {
+                currentParticipanteDetail = result.participante; // Guardar detalles para edición/eliminación
+
+                document.getElementById('detalleParticipanteCodigo').textContent = currentParticipanteDetail['Código'];
+                document.getElementById('detalleNombre').textContent = currentParticipanteDetail['Nombre Completo'] || 'N/A';
+                document.getElementById('detalleFechaNacimiento').textContent = currentParticipanteDetail['Fecha de Nacimiento'] ? new Date(currentParticipanteDetail['Fecha de Nacimiento']).toLocaleDateString() : 'N/A';
+                document.getElementById('detalleTutora').textContent = currentParticipanteDetail['Tutora Asignada'] || 'N/A';
+                document.getElementById('detalleDireccion').textContent = currentParticipanteDetail['Dirección'] || 'N/A';
+                document.getElementById('detalleTelefono').textContent = currentParticipanteDetail['Teléfono'] || 'N/A';
+                document.getElementById('detalleEmail').textContent = currentParticipanteDetail['Email'] || 'N/A';
+                document.getElementById('detalleEstado').textContent = currentParticipanteDetail['Estado'] || 'N/A';
+                document.getElementById('detalleFechaRegistro').textContent = currentParticipanteDetail['Fecha de Registro'] ? new Date(currentParticipanteDetail['Fecha de Registro']).toLocaleDateString() : 'N/A';
+
+                const aportesTableBody = document.getElementById('detalleAportesTableBody');
+                aportesTableBody.innerHTML = '';
+                document.getElementById('noDetalleAportesMessage').classList.add('hidden');
+
+                if (currentParticipanteDetail.aportes && currentParticipanteDetail.aportes.length > 0) {
+                    currentParticipanteDetail.aportes.forEach(aporte => {
+                        const row = aportesTableBody.insertRow();
+                        row.insertCell().textContent = `$${aporte.Monto ? aporte.Monto.toLocaleString() : '0'}`;
+                        row.insertCell().textContent = aporte['Método de Pago'] || 'N/A';
+                        row.insertCell().textContent = aporte['Referencia de Pago'] || 'N/A';
+                        row.insertCell().textContent = Array.isArray(aporte['Meses Cubiertos']) ? aporte['Meses Cubiertos'].join(', ') : (aporte['Meses Cubiertos'] || 'N/A');
+                        row.insertCell().textContent = aporte['Fecha de Aporte'] || 'N/A';
+                        row.insertCell().textContent = aporte['Recibido Por'] || 'N/A';
+                    });
+                } else {
+                    document.getElementById('noDetalleAportesMessage').classList.remove('hidden');
+                }
+
+                showSection('participanteDetalle');
+            } else {
+                alert('Error al cargar el detalle del participante: ' + result.message);
+            }
+        }
+
+
+        // ======================== GESTIÓN APORTES ========================
+
+        async function loadAportes() {
+            const filterCodigoParticipante = document.getElementById('filterAporteCodigoParticipante').value;
+            const filterFechaInicio = document.getElementById('filterAporteFechaInicio').value;
+            const filterFechaFin = document.getElementById('filterAporteFechaFin').value;
+
+            const filters = {
+                participanteCodigo: filterCodigoParticipante,
+                fechaInicio: filterFechaInicio,
+                fechaFin: filterFechaFin
+            };
+
+            const result = await callAppScript('getAportes', filters);
+            const tableBody = document.getElementById('aportesTableBody');
+            tableBody.innerHTML = ''; // Limpiar tabla
+            document.getElementById('noAportesMessage').classList.add('hidden');
+
+            if (result.success && result.aportes && result.aportes.length > 0) {
+                result.aportes.forEach(aporte => {
+                    const row = tableBody.insertRow();
+                    row.insertCell().textContent = aporte['Código Participante'];
+                    row.insertCell().textContent = `$${aporte.Monto ? aporte.Monto.toLocaleString() : '0'}`;
+                    row.insertCell().textContent = aporte['Método de Pago'];
+                    row.insertCell().textContent = Array.isArray(aporte['Meses Cubiertos']) ? aporte['Meses Cubiertos'].join(', ') : (aporte['Meses Cubiertos'] || '');
+                    row.insertCell().textContent = aporte['Fecha de Aporte'] ? new Date(aporte['Fecha de Aporte']).toLocaleDateString() : '';
+                    row.insertCell().textContent = aporte['Recibido Por'] || '';
+                });
+            } else {
+                document.getElementById('noAportesMessage').classList.remove('hidden');
+            }
+        }
+
+        function clearAporteFilters() {
+            document.getElementById('filterAporteCodigoParticipante').value = '';
+            document.getElementById('filterAporteFechaInicio').value = '';
+            document.getElementById('filterAporteFechaFin').value = '';
+            loadAportes(); // Recargar todos los aportes
+        }
+
+        document.getElementById('addAporteForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            localStorage.removeItem('currentUser');
-            currentUser = null;
-            document.getElementById('loggedInUser').textContent = '';
-            checkLoginStatus(); // Volver a mostrar el modal de login
+            const form = e.target;
+            const formData = new FormData(form);
+            const aporteData = {
+                codigoParticipante: formData.get('codigoParticipante'),
+                monto: parseFloat(formData.get('monto')),
+                metodoPago: formData.get('metodoPago'),
+                referenciaPago: formData.get('referenciaPago'),
+                meses: [...document.querySelectorAll('#aporteMeses option:checked')].map(option => option.value), // Obtener todos los meses seleccionados
+                recibidoPor: formData.get('recibidoPor')
+            };
+
+            const messageElement = document.getElementById('aporteFormMessage');
+            messageElement.textContent = 'Procesando...';
+            messageElement.classList.remove('text-red-600', 'text-green-600');
+            messageElement.classList.add('text-gray-600'); // Temporal para procesamiento
+
+            const result = await callAppScript('registrarAporte', aporteData);
+
+            if (result.success) {
+                messageElement.textContent = result.message;
+                messageElement.classList.remove('text-red-600', 'text-gray-600');
+                messageElement.classList.add('text-green-600');
+                setTimeout(() => {
+                    closeModal('addAporteModal');
+                    loadAportes();
+                }, 1500);
+            } else {
+                messageElement.textContent = result.message || 'Error al registrar aporte.';
+                messageElement.classList.remove('text-green-600', 'text-gray-600');
+                messageElement.classList.add('text-red-600');
+            }
         });
 
 
-        // =========================================================
-        // === EVENT LISTENERS Y CARGA INICIAL ===
-        // =========================================================
+        // ======================== INICIALIZACIÓN ========================
 
-        document.getElementById('linkDashboard').addEventListener('click', (e) => { e.preventDefault(); loadDashboard(); });
-        document.getElementById('linkParticipantes').addEventListener('click', (e) => { e.preventDefault(); loadParticipantes(); });
-        document.getElementById('linkAportes').addEventListener('click', (e) => { e.preventDefault(); loadAportes(); });
-        document.getElementById('linkReportes').addEventListener('click', (e) => { e.preventDefault(); loadReportes(); });
-
-
-        // Manejar apertura/cierre de sidebar
+        // Abrir/cerrar sidebar
         document.getElementById('openSidebar').addEventListener('click', () => {
             document.getElementById('sidebar').classList.remove('sidebar-closed');
+            document.getElementById('sidebarOverlay').style.display = 'block'; // Mostrar overlay
         });
         document.getElementById('closeSidebar').addEventListener('click', () => {
             document.getElementById('sidebar').classList.add('sidebar-closed');
+            document.getElementById('sidebarOverlay').style.display = 'none'; // Ocultar overlay
         });
+
+        function closeSidebar() { // Función para cerrar sidebar desde el overlay
+            document.getElementById('sidebar').classList.add('sidebar-closed');
+            document.getElementById('sidebarOverlay').style.display = 'none';
+        }
 
 
         // Verificar si hay parámetro de URL al cargar para vista pública de participante
         async function checkURLParams() {
-            const params = new URLSearchParams(window.location.hash.substring(1)); // Get hash part
+            // El hash es lo que va después del # en la URL (ej. #participante=CODIGO123)
+            const params = new URLSearchParams(window.location.hash.substring(1));
             const participanteCodigo = params.get('participante');
             if (participanteCodigo) {
-                // If a participant code is in the URL, try to load its details directly
-                document.getElementById('loginModal').classList.add('hidden'); // Hide login if directly viewing a participant
-                await loadParticipanteDetalle(participanteCodigo);
+                // Si hay un código de participante en la URL, intenta cargar sus detalles directamente
+                document.getElementById('loginModal').classList.add('hidden'); // Ocultar login si se está viendo un participante directamente
+                document.getElementById('sidebar').classList.add('sidebar-closed'); // Cerrar sidebar si se está viendo un participante
+                document.getElementById('mainContent').style.marginLeft = '0'; // No hay sidebar
+                await viewParticipanteDetalle(participanteCodigo); // Usar la función existente para ver detalles
             } else {
-                // Otherwise, proceed with normal login check
+                // Si no hay código de participante, proceder con la verificación de login normal
                 checkLoginStatus();
             }
         }
@@ -893,8 +1016,15 @@
             const sidebar = document.getElementById('sidebar');
             if (window.innerWidth >= 768) {
                 sidebar.classList.remove('sidebar-closed');
+                document.getElementById('mainContent').style.marginLeft = '16rem';
+                document.getElementById('sidebarOverlay').style.display = 'none'; // Ocultar overlay en desktop
             } else {
-                sidebar.classList.add('sidebar-closed');
+                // Solo cerrar si no estamos en la vista de detalle pública y el sidebar no está ya abierto
+                const params = new URLSearchParams(window.location.hash.substring(1));
+                const participanteCodigo = params.get('participante');
+                if (!participanteCodigo && sidebar.classList.contains('sidebar-closed')) {
+                    document.getElementById('mainContent').style.marginLeft = '0';
+                }
             }
         });
 
