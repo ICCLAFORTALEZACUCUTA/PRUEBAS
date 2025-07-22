@@ -5,27 +5,21 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sistema de Aportes ONG</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
-        :root {
-            --primary-color: #667eea;
-            --secondary-color: #764ba2;
-            --text-color: #333;
-            --bg-light: #f3f4f6;
-            --card-bg: #ffffff;
+        * {
+            box-sizing: border-box;
         }
 
         body {
-            font-family: 'Inter', sans-serif;
-            color: var(--text-color);
-            background-color: var(--bg-light);
+            margin: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
 
         .gradient-bg {
-            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         }
 
         .card-hover {
@@ -38,1125 +32,863 @@
         }
 
         .sidebar {
-            transition: transform 0.3s ease-out;
+            transition: transform 0.3s ease;
         }
 
         .sidebar-closed {
             transform: translateX(-100%);
         }
-
-        .modal-overlay {
-            background-color: rgba(0, 0, 0, 0.6);
-            backdrop-filter: blur(4px);
-            transition: opacity 0.3s ease;
-        }
-
-        .modal-content {
-            transition: transform 0.3s ease-out, opacity 0.3s ease-out;
-            transform: translateY(20px);
-            opacity: 0;
-        }
-
-        .modal.show .modal-content {
-            transform: translateY(0);
-            opacity: 1;
-        }
-
-        .loading-overlay {
-            transition: opacity 0.3s ease;
-        }
-
-        .fade-in {
-            animation: fadeIn 0.5s ease-out forwards;
-        }
-
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-            }
-
-            to {
-                opacity: 1;
-            }
-        }
-
-        /* Toast Notifications */
-        #toast-container {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            z-index: 1000;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
-        .toast {
-            background-color: #333;
-            color: white;
-            padding: 12px 20px;
-            border-radius: 8px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-            opacity: 0;
-            transform: translateY(-20px);
-            animation: slideInToast 0.4s ease-out forwards, fadeOutToast 0.5s ease-out 2.5s forwards;
-            min-width: 250px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .toast.success {
-            background-color: #28a745;
-        }
-
-        .toast.error {
-            background-color: #dc3545;
-        }
-
-        .toast.info {
-            background-color: #17a2b8;
-        }
-
-        @keyframes slideInToast {
-            from {
-                opacity: 0;
-                transform: translateY(-20px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        @keyframes fadeOutToast {
-            from {
-                opacity: 1;
-            }
-
-            to {
-                opacity: 0;
-            }
-        }
     </style>
 </head>
 
-<body class="min-h-screen flex bg-gray-100">
+<body class="bg-gray-100 flex h-screen">
 
-    <div id="loadingOverlay"
-        class="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center z-[9999] transition-opacity duration-300 opacity-0 pointer-events-none">
-        <div class="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-blue-500"></div>
-    </div>
+    <aside id="sidebar" class="bg-gray-800 text-white w-64 space-y-6 py-7 px-2 absolute inset-y-0 left-0 transform md:relative md:translate-x-0 transition duration-200 ease-in-out sidebar-closed z-50">
+        <button id="closeSidebar" class="absolute top-4 right-4 text-white md:hidden">
+            <i class="fas fa-times text-2xl"></i>
+        </button>
+        <a href="#" class="text-white flex items-center space-x-2 px-4">
+            <i class="fas fa-hand-holding-heart text-2xl"></i>
+            <span class="text-2xl font-extrabold">ONG Aportes</span>
+        </a>
 
-    <div id="loginScreen" class="flex-1 flex items-center justify-center min-h-screen gradient-bg">
-        <div class="bg-white p-8 rounded-xl shadow-2xl w-full max-w-md card-hover transform transition-all duration-300">
-            <h2 class="text-3xl font-bold text-center mb-6 text-gray-800">Acceso al Sistema 🔐</h2>
-            <form id="loginForm" class="space-y-6">
-                <div>
-                    <label for="username" class="block text-gray-700 text-sm font-medium mb-2">Usuario:</label>
-                    <div class="relative">
-                        <input type="text" id="username" name="username"
-                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                            placeholder="Ingrese su usuario" required autocomplete="username">
-                        <i class="fas fa-user absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
-                    </div>
-                </div>
-                <div>
-                    <label for="password" class="block text-gray-700 text-sm font-medium mb-2">Contraseña:</label>
-                    <div class="relative">
-                        <input type="password" id="password" name="password"
-                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                            placeholder="Ingrese su contraseña" required autocomplete="current-password">
-                        <i class="fas fa-lock absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
-                    </div>
-                </div>
-                <button type="submit"
-                    class="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-semibold shadow-md hover:shadow-lg transition-all duration-200 ease-in-out transform active:scale-98 flex items-center justify-center gap-2">
-                    <i class="fas fa-sign-in-alt"></i> Iniciar Sesión
-                </button>
-            </form>
+        <nav>
+            <a href="#" id="linkDashboard" class="block py-2.5 px-4 rounded transition duration-200 hover:bg-gray-700 active-link"><i class="fas fa-home mr-3"></i>Dashboard</a>
+            <a href="#" id="linkParticipantes" class="block py-2.5 px-4 rounded transition duration-200 hover:bg-gray-700"><i class="fas fa-users mr-3"></i>Participantes</a>
+            <a href="#" id="linkAportes" class="block py-2.5 px-4 rounded transition duration-200 hover:bg-gray-700"><i class="fas fa-coins mr-3"></i>Aportes</a>
+            <a href="#" id="linkReportes" class="block py-2.5 px-4 rounded transition duration-200 hover:bg-gray-700"><i class="fas fa-chart-line mr-3"></i>Reportes</a>
+        </nav>
+        <div class="absolute bottom-0 w-full p-4">
+            <a href="#" id="logoutButton" class="block py-2.5 px-4 rounded transition duration-200 hover:bg-red-700 bg-red-600 text-center"><i class="fas fa-sign-out-alt mr-3"></i>Cerrar Sesión</a>
         </div>
-    </div>
+    </aside>
 
-    <div id="app" class="flex-1 hidden">
-        <aside id="sidebar"
-            class="bg-gray-800 text-white w-64 min-h-screen p-6 flex flex-col justify-between sidebar fixed md:relative z-40 sidebar-closed">
-            <div>
-                <h1 class="text-3xl font-extrabold mb-8 text-center gradient-text">ONG Aportes ✨</h1>
-                <nav class="space-y-4">
-                    <a href="#" id="dashboardLink"
-                        class="flex items-center py-3 px-4 rounded-lg text-lg hover:bg-gray-700 transition-colors duration-200">
-                        <i class="fas fa-chart-line mr-3"></i>Dashboard
-                    </a>
-                    <a href="#" id="participantesLink"
-                        class="flex items-center py-3 px-4 rounded-lg text-lg hover:bg-gray-700 transition-colors duration-200">
-                        <i class="fas fa-users mr-3"></i>Participantes
-                    </a>
-                    <a href="#" id="aportesLink"
-                        class="flex items-center py-3 px-4 rounded-lg text-lg hover:bg-gray-700 transition-colors duration-200">
-                        <i class="fas fa-money-bill-wave mr-3"></i>Aportes
-                    </a>
-                </nav>
-            </div>
-            <div class="mt-8">
-                <p class="text-gray-400 text-sm mb-2">Bienvenido, <span id="currentUser"
-                        class="font-semibold text-white"></span></p>
-                <button id="logoutButton"
-                    class="w-full bg-red-600 hover:bg-red-700 text-white py-2 rounded-lg font-semibold transition-colors duration-200 flex items-center justify-center gap-2">
-                    <i class="fas fa-sign-out-alt"></i>Cerrar Sesión
-                </button>
-            </div>
-        </aside>
-
-        <main class="flex-1 p-6 md:p-8 relative">
-            <button id="sidebarToggle" class="md:hidden fixed top-4 left-4 z-50 bg-blue-600 text-white p-3 rounded-full shadow-lg">
-                <i class="fas fa-bars"></i>
+    <div class="flex-1 flex flex-col overflow-hidden">
+        <header class="flex justify-between items-center p-4 bg-white shadow-md">
+            <button id="openSidebar" class="text-gray-600 md:hidden">
+                <i class="fas fa-bars text-2xl"></i>
             </button>
+            <h1 class="text-xl font-semibold text-gray-800">Panel de Administración</h1>
+            <div class="flex items-center space-x-4">
+                <span id="loggedInUser" class="text-gray-700 font-medium"></span>
+                <i class="fas fa-user-circle text-2xl text-gray-500"></i>
+            </div>
+        </header>
 
-            <section id="dashboardSection" class="hidden fade-in">
-                <h2 class="text-4xl font-extrabold text-gray-800 mb-8">Dashboard 📊</h2>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-                    <div class="bg-white p-6 rounded-xl shadow-lg card-hover">
-                        <h3 class="text-xl font-semibold text-gray-700 mb-2">Total Aportes Recibidos</h3>
-                        <p class="text-4xl font-bold text-green-600">$<span id="totalAportes">0</span></p>
-                    </div>
-                    <div class="bg-white p-6 rounded-xl shadow-lg card-hover">
-                        <h3 class="text-xl font-semibold text-gray-700 mb-2">Participantes Activos</h3>
-                        <p class="text-4xl font-bold text-blue-600"><span id="participantesActivos">0</span></p>
-                    </div>
-                    <div class="bg-white p-6 rounded-xl shadow-lg card-hover">
-                        <h3 class="text-xl font-semibold text-gray-700 mb-2">Aportes Pendientes</h3>
-                        <p class="text-4xl font-bold text-red-600">$<span id="totalPendienteDashboard">0</span></p>
-                    </div>
+        <main class="flex-1 overflow-x-hidden overflow-y-auto bg-gray-100 p-6">
+            <div id="content" class="container mx-auto">
                 </div>
-
-                <div class="bg-white p-6 rounded-xl shadow-lg mb-8 fade-in">
-                    <h3 class="text-xl font-semibold text-gray-700 mb-4">Aportes Mensuales 📈</h3>
-                    <canvas id="monthlyChart"></canvas>
-                </div>
-
-                <div class="bg-white p-6 rounded-xl shadow-lg fade-in">
-                    <h3 class="text-xl font-semibold text-gray-700 mb-4">Últimos 10 Aportes Recibidos 🌟</h3>
-                    <div class="overflow-x-auto">
-                        <table class="min-w-full bg-white">
-                            <thead>
-                                <tr class="bg-gray-200 text-gray-700 uppercase text-sm leading-normal">
-                                    <th class="py-3 px-6 text-left">Participante</th>
-                                    <th class="py-3 px-6 text-left">Monto</th>
-                                    <th class="py-3 px-6 text-left">Fecha</th>
-                                    <th class="py-3 px-6 text-left">Meses</th>
-                                </tr>
-                            </thead>
-                            <tbody id="latestAportesList" class="text-gray-600 text-sm font-light">
-                                <tr>
-                                    <td colspan="4" class="py-4 text-center text-gray-500">No hay aportes recientes.</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </section>
-
-            <section id="participantesSection" class="hidden fade-in">
-                <h2 class="text-4xl font-extrabold text-gray-800 mb-8">Gestión de Participantes 👥</h2>
-
-                <div class="mb-6 flex flex-wrap gap-4 items-center">
-                    <input type="text" id="searchParticipanteInput"
-                        class="flex-1 min-w-[200px] px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                        placeholder="Buscar por código, nombre o ciudadanía...">
-                    <button id="addParticipanteButton"
-                        class="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg font-semibold shadow-md hover:shadow-lg transition-all duration-200 ease-in-out transform active:scale-98 flex items-center gap-2">
-                        <i class="fas fa-plus"></i> Añadir Participante
-                    </button>
-                </div>
-
-                <div class="bg-white p-6 rounded-xl shadow-lg fade-in">
-                    <h3 class="text-xl font-semibold text-gray-700 mb-4">Lista de Participantes 📋</h3>
-                    <div class="overflow-x-auto">
-                        <table class="min-w-full bg-white">
-                            <thead>
-                                <tr class="bg-gray-200 text-gray-700 uppercase text-sm leading-normal">
-                                    <th class="py-3 px-6 text-left">Código</th>
-                                    <th class="py-3 px-6 text-left">Nombre</th>
-                                    <th class="py-3 px-6 text-left">Ciudadanía</th>
-                                    <th class="py-3 px-6 text-left">Tutor/a</th>
-                                    <th class="py-3 px-6 text-left">Estado</th>
-                                    <th class="py-3 px-6 text-center">Acciones</th>
-                                </tr>
-                            </thead>
-                            <tbody id="participantesList" class="text-gray-600 text-sm font-light">
-                                <tr>
-                                    <td colspan="6" class="py-4 text-center text-gray-500">No hay participantes registrados.</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </section>
-
-            <section id="aportesSection" class="hidden fade-in">
-                <h2 class="text-4xl font-extrabold text-gray-800 mb-8">Registro de Aportes 💰</h2>
-
-                <div class="mb-6 flex flex-wrap gap-4 items-center">
-                    <input type="text" id="searchAporteInput"
-                        class="flex-1 min-w-[200px] px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                        placeholder="Buscar por participante o código...">
-                    <button id="addAporteButton"
-                        class="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg font-semibold shadow-md hover:shadow-lg transition-all duration-200 ease-in-out transform active:scale-98 flex items-center gap-2">
-                        <i class="fas fa-plus"></i> Registrar Aporte
-                    </button>
-                </div>
-
-                <div class="bg-white p-6 rounded-xl shadow-lg fade-in">
-                    <h3 class="text-xl font-semibold text-gray-700 mb-4">Historial de Aportes 📚</h3>
-                    <div class="overflow-x-auto">
-                        <table class="min-w-full bg-white">
-                            <thead>
-                                <tr class="bg-gray-200 text-gray-700 uppercase text-sm leading-normal">
-                                    <th class="py-3 px-6 text-left">Participante</th>
-                                    <th class="py-3 px-6 text-left">Código</th>
-                                    <th class="py-3 px-6 text-left">Monto</th>
-                                    <th class="py-3 px-6 text-left">Fecha</th>
-                                    <th class="py-3 px-6 text-left">Meses Cubiertos</th>
-                                </tr>
-                            </thead>
-                            <tbody id="aportesList" class="text-gray-600 text-sm font-light">
-                                <tr>
-                                    <td colspan="5" class="py-4 text-center text-gray-500">No hay aportes registrados.</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </section>
         </main>
     </div>
 
-    <div id="modalRegistrarParticipante"
-        class="modal fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 modal-overlay hidden z-50">
-        <div class="bg-white p-8 rounded-xl shadow-2xl w-full max-w-md modal-content">
-            <h3 id="modalParticipanteTitle" class="text-2xl font-bold text-gray-800 mb-6 text-center">Registrar Nuevo Participante</h3>
-            <form id="formRegistrarParticipante" class="space-y-5">
+    <div id="loginModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div class="bg-white p-8 rounded-lg shadow-xl w-96">
+            <h2 class="text-2xl font-bold text-center mb-6">Iniciar Sesión</h2>
+            <form id="loginForm" class="space-y-4">
                 <div>
-                    <label for="participanteCodigo" class="block text-gray-700 text-sm font-medium mb-2">Código:</label>
-                    <input type="text" id="participanteCodigo" name="codigo"
-                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                        placeholder="Ej: P001" required>
+                    <label for="username" class="block text-gray-700 text-sm font-bold mb-2">Usuario:</label>
+                    <input type="text" id="username" name="username" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
                 </div>
                 <div>
-                    <label for="participanteNombre" class="block text-gray-700 text-sm font-medium mb-2">Nombre Completo:</label>
-                    <input type="text" id="participanteNombre" name="nombre"
-                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                        placeholder="Ej: Juan Pérez" required>
+                    <label for="password" class="block text-gray-700 text-sm font-bold mb-2">Contraseña:</label>
+                    <input type="password" id="password" name="password" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 mb-3 leading-tight focus:outline-none focus:shadow-outline" required>
+                </div>
+                <div id="loginError" class="text-red-500 text-xs italic mb-4 hidden"></div>
+                <button type="submit" class="gradient-bg text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline w-full hover:opacity-90 transition-opacity">Entrar</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="participantModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white p-8 rounded-lg shadow-xl w-full max-w-md">
+            <h2 id="participantModalTitle" class="text-2xl font-bold text-center mb-6">Registrar Participante</h2>
+            <form id="participantForm" class="space-y-4">
+                <input type="hidden" id="originalCodigo">
+                <div>
+                    <label for="p-codigo" class="block text-gray-700 text-sm font-bold mb-2">Código:</label>
+                    <input type="text" id="p-codigo" name="codigo" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
                 </div>
                 <div>
-                    <label for="participanteCiudadania" class="block text-gray-700 text-sm font-medium mb-2">Ciudadanía:</label>
-                    <input type="text" id="participanteCiudadania" name="ciudadania"
-                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                        placeholder="Ej: Venezolana" required>
+                    <label for="p-nombre" class="block text-gray-700 text-sm font-bold mb-2">Nombre:</label>
+                    <input type="text" id="p-nombre" name="nombre" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
                 </div>
                 <div>
-                    <label for="participanteTutora" class="block text-gray-700 text-sm font-medium mb-2">Tutor/a Asignado:</label>
-                    <input type="text" id="participanteTutora" name="tutora"
-                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                        placeholder="Ej: Ana Gómez" required>
+                    <label for="p-ciudadania" class="block text-gray-700 text-sm font-bold mb-2">Ciudadanía:</label>
+                    <input type="text" id="p-ciudadania" name="ciudadania" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
                 </div>
-                <div class="flex justify-end gap-4 mt-6">
-                    <button type="button" id="cancelParticipanteButton"
-                        class="bg-gray-300 hover:bg-gray-400 text-gray-800 py-2 px-5 rounded-lg font-semibold transition-colors duration-200">
-                        Cancelar
-                    </button>
-                    <button type="submit"
-                        class="bg-blue-600 hover:bg-blue-700 text-white py-2 px-5 rounded-lg font-semibold transition-colors duration-200 flex items-center gap-2">
-                        <i class="fas fa-save"></i> Guardar
-                    </button>
+                <div>
+                    <label for="p-tutora" class="block text-gray-700 text-sm font-bold mb-2">Tutora (Correo):</label>
+                    <input type="email" id="p-tutora" name="tutora" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
+                </div>
+                <div id="participantError" class="text-red-500 text-xs italic mb-4 hidden"></div>
+                <div class="flex justify-end space-x-4">
+                    <button type="button" id="cancelParticipant" class="bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded hover:bg-gray-400 focus:outline-none focus:shadow-outline">Cancelar</button>
+                    <button type="submit" class="gradient-bg text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline hover:opacity-90 transition-opacity">Guardar</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <div id="modalRegistrarAporte"
-        class="modal fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 modal-overlay hidden z-50">
-        <div class="bg-white p-8 rounded-xl shadow-2xl w-full max-w-md modal-content">
-            <h3 class="text-2xl font-bold text-gray-800 mb-6 text-center">Registrar Nuevo Aporte</h3>
-            <form id="formRegistrarAporte" class="space-y-5">
+    <div id="aporteModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white p-8 rounded-lg shadow-xl w-full max-w-md">
+            <h2 class="text-2xl font-bold text-center mb-6">Registrar Aporte</h2>
+            <form id="aporteForm" class="space-y-4">
                 <div>
-                    <label for="aporteParticipante" class="block text-gray-700 text-sm font-medium mb-2">Participante:</label>
-                    <select id="aporteParticipante" name="codigo"
-                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                        required>
-                        <option value="">Seleccione un participante</option>
-                    </select>
+                    <label for="a-codigo" class="block text-gray-700 text-sm font-bold mb-2">Código Participante:</label>
+                    <input type="text" id="a-codigo" name="codigo" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
                 </div>
                 <div>
-                    <label for="aporteMonto" class="block text-gray-700 text-sm font-medium mb-2">Monto ($):</label>
-                    <input type="number" id="aporteMonto" name="monto"
-                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                        placeholder="Ej: 50" min="0.01" step="0.01" required>
+                    <label for="a-nombre-participante" class="block text-gray-700 text-sm font-bold mb-2">Nombre Participante:</label>
+                    <input type="text" id="a-nombre-participante" name="nombreParticipante" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" readonly>
                 </div>
                 <div>
-                    <label for="aporteFecha" class="block text-gray-700 text-sm font-medium mb-2">Fecha del Aporte:</label>
-                    <input type="date" id="aporteFecha" name="fecha"
-                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                        required>
+                    <label for="a-monto" class="block text-gray-700 text-sm font-bold mb-2">Monto ($):</label>
+                    <input type="number" id="a-monto" name="monto" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" step="0.01" required>
                 </div>
                 <div>
-                    <label class="block text-gray-700 text-sm font-medium mb-2">Meses cubiertos:</label>
-                    <div id="mesesCheckboxes" class="grid grid-cols-2 gap-2">
-                        </div>
-                    <p id="mesesError" class="text-red-500 text-sm mt-2 hidden">Seleccione al menos un mes.</p>
+                    <label for="a-fecha" class="block text-gray-700 text-sm font-bold mb-2">Fecha:</label>
+                    <input type="date" id="a-fecha" name="fecha" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
                 </div>
-                <div class="flex justify-end gap-4 mt-6">
-                    <button type="button" id="cancelAporteButton"
-                        class="bg-gray-300 hover:bg-gray-400 text-gray-800 py-2 px-5 rounded-lg font-semibold transition-colors duration-200">
-                        Cancelar
-                    </button>
-                    <button type="submit"
-                        class="bg-blue-600 hover:bg-blue-700 text-white py-2 px-5 rounded-lg font-semibold transition-colors duration-200 flex items-center gap-2">
-                        <i class="fas fa-save"></i> Registrar
-                    </button>
+                <div>
+                    <label for="a-meses" class="block text-gray-700 text-sm font-bold mb-2">Mes(es) que cubre:</label>
+                    <select id="a-meses" name="meses" class="shadow border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" multiple required>
+                        </select>
+                    <p class="text-xs text-gray-500 mt-1">Mantén Ctrl/Cmd para seleccionar múltiples meses.</p>
+                </div>
+                <div id="aporteError" class="text-red-500 text-xs italic mb-4 hidden"></div>
+                <div class="flex justify-end space-x-4">
+                    <button type="button" id="cancelAporte" class="bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded hover:bg-gray-400 focus:outline-none focus:shadow-outline">Cancelar</button>
+                    <button type="submit" class="gradient-bg text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline hover:opacity-90 transition-opacity">Registrar</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <div id="modalParticipanteDetalle"
-        class="modal fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 modal-overlay hidden z-50">
-        <div class="bg-white p-8 rounded-xl shadow-2xl w-full max-w-2xl modal-content">
-            <h3 class="text-2xl font-bold text-gray-800 mb-6 text-center">Detalle del Participante 👤</h3>
-            <div id="participanteDetalleContent" class="text-gray-700">
-                </div>
-            <div class="flex justify-end mt-6">
-                <button type="button" id="closeParticipanteDetalleButton"
-                    class="bg-gray-300 hover:bg-gray-400 text-gray-800 py-2 px-5 rounded-lg font-semibold transition-colors duration-200">
-                    Cerrar
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <div id="toast-container"></div>
 
     <script>
-        // Set the Apps Script Web App URL here!
-        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxdxcWFsOcZ5ED9uIPbiDUnYan61x9AgbaWb1FHeqTM5urDZbaxuIxXJKUXtI8y9vGZ/exec'; // REPLACE THIS WITH YOUR DEPLOYED APPS SCRIPT URL
+        // =========================================================
+        // === IMPORTANTE: CONFIGURACIÓN DE LA URL DE TU APPS SCRIPT ===
+        // =========================================================
+        // ¡DEBES REEMPLAZAR ESTA URL CON LA URL DE DESPLIEGUE DE TU APPS SCRIPT!
+        // Ve a tu proyecto de Apps Script -> Desplegar -> Nueva implementación -> Tipo: Aplicación web
+        // Copia la URL que termina en "/exec".
+        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxdxcWFsOcZ5ED9uIPbiDUnYan61x9AgbaWb1FHeqTM5urDZbaxuIxXJKUXtI8y9vGZ/exec'; // <--- ¡CAMBIA ESTO!
+        // =========================================================
 
-        let currentUser = null; // Stores user session data
-        let participantesData = [];
-        let aportesData = [];
-        let currentEditingParticipant = null; // For edit functionality
+        let currentUser = null; // Variable global para el usuario logueado
 
-        // Chart.js instance for monthly contributions
-        let monthlyChartInstance = null;
-
-        // --- Helper Functions ---
-
-        function showLoading() {
-            document.getElementById('loadingOverlay').classList.remove('opacity-0', 'pointer-events-none');
-            document.getElementById('loadingOverlay').classList.add('opacity-100');
-        }
-
-        function hideLoading() {
-            document.getElementById('loadingOverlay').classList.add('opacity-0', 'pointer-events-none');
-            document.getElementById('loadingOverlay').classList.remove('opacity-100');
-        }
-
-        function showToast(message, type = 'info') {
-            const toastContainer = document.getElementById('toast-container');
-            const toast = document.createElement('div');
-            toast.classList.add('toast', type);
-            let icon = '';
-            if (type === 'success') icon = '<i class="fas fa-check-circle mr-2"></i>';
-            else if (type === 'error') icon = '<i class="fas fa-times-circle mr-2"></i>';
-            else icon = '<i class="fas fa-info-circle mr-2"></i>';
-
-            toast.innerHTML = `${icon}<span>${message}</span>`;
-            toastContainer.prepend(toast); // Add to top
-
-            setTimeout(() => {
-                toast.remove();
-            }, 3000); // Toast disappears after 3 seconds
-        }
-
-
-        function showModal(modalId) {
-            const modal = document.getElementById(modalId);
-            modal.classList.remove('hidden');
-            setTimeout(() => {
-                modal.classList.add('show');
-            }, 10); // Small delay for transition
-        }
-
-        function hideModal(modalId) {
-            const modal = document.getElementById(modalId);
-            modal.classList.remove('show');
-            setTimeout(() => {
-                modal.classList.add('hidden');
-            }, 300); // Match transition duration
-        }
-
-        function isAdmin() {
-            return currentUser && currentUser.rol === 'administrador';
-        }
-
-        function isTutora() {
-            return currentUser && currentUser.rol === 'tutora';
-        }
-
-        async function makeRequest(action, data = {}) {
-            showLoading();
+        // Función para realizar llamadas a Apps Script mediante Fetch API
+        async function callAppsScript(action, data = {}) {
             try {
-                // For a deployed Apps Script Web App, you'd send POST requests
                 const response = await fetch(APPS_SCRIPT_URL, {
                     method: 'POST',
-                    mode: 'no-cors', // Apps Script requires no-cors for direct fetch, or use google.script.run
                     headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded', // Apps Script expects form-urlencoded
+                        'Content-Type': 'application/json', // Indicamos que enviamos JSON
                     },
-                    body: new URLSearchParams({
+                    body: JSON.stringify({ // Enviamos la acción y los datos como un objeto JSON
                         action: action,
-                        data: JSON.stringify(data)
-                    }).toString()
+                        data: data
+                    })
                 });
 
-                // IMPORTANT: When using `mode: 'no-cors'`, `response.json()` won't work.
-                // You'll need to use `google.script.run` for a proper client-server interaction
-                // within the Apps Script environment for direct JSON responses.
-                // The provided Apps Script uses `ContentService.createTextOutput(JSON.stringify(result))`
-                // which means the response is a stringified JSON.
-                // For a 'no-cors' request, the response body is opaque.
+                if (!response.ok) {
+                    throw new Error(`Error HTTP! estado: ${response.status}`);
+                }
 
-                // For seamless integration with Apps Script returning JSON, you should use google.script.run:
-                return new Promise((resolve, reject) => {
-                    google.script.run
-                        .withSuccessHandler(resolve)
-                        .withFailureHandler(reject)
-                        .doPost({ action: action, data: JSON.stringify(data) }); // Your Apps Script doPost expects e.parameter.action and e.parameter.data
-                });
+                const result = await response.json();
+                return result;
 
             } catch (error) {
-                console.error('Error en makeRequest:', error);
-                showToast('Error de conexión. Inténtelo de nuevo.', 'error');
-                return { success: false, message: 'Error de conexión.' };
-            } finally {
-                hideLoading();
+                console.error('Error al llamar a Apps Script:', error);
+                // Retornar un formato de error consistente
+                return { success: false, message: 'Error de comunicación con el servidor: ' + error.message };
             }
         }
 
 
-        // --- Navigation & UI ---
+        // Funciones de control de UI y navegación
+        function showContent(html) {
+            document.getElementById('content').innerHTML = html;
+        }
 
-        function showSection(sectionId) {
-            document.querySelectorAll('section').forEach(section => {
-                section.classList.add('hidden');
-                section.classList.remove('fade-in');
-            });
-            document.getElementById(sectionId).classList.remove('hidden');
-            document.getElementById(sectionId).classList.add('fade-in');
-
+        function setActiveLink(linkId) {
             document.querySelectorAll('nav a').forEach(link => {
-                link.classList.remove('bg-gray-700');
+                link.classList.remove('active-link');
+                link.classList.remove('bg-gray-700'); // Eliminar la clase hover que puede quedar
             });
-            const activeLink = document.getElementById(`${sectionId.replace('Section', '')}Link`);
+            const activeLink = document.getElementById(linkId);
             if (activeLink) {
-                activeLink.classList.add('bg-gray-700');
+                activeLink.classList.add('active-link', 'bg-gray-700');
             }
         }
 
-        document.getElementById('dashboardLink').addEventListener('click', () => {
-            showSection('dashboardSection');
-            updateDashboard();
-        });
-        document.getElementById('participantesLink').addEventListener('click', () => {
-            showSection('participantesSection');
-            loadParticipantes();
-        });
-        document.getElementById('aportesLink').addEventListener('click', () => {
-            showSection('aportesSection');
-            loadAportes();
-        });
-
-        document.getElementById('sidebarToggle').addEventListener('click', () => {
-            document.getElementById('sidebar').classList.toggle('sidebar-closed');
-        });
+        function closeSidebar() {
+            if (window.innerWidth < 768) {
+                document.getElementById('sidebar').classList.add('sidebar-closed');
+            }
+        }
 
 
-        // --- Authentication ---
+        // =========================================================
+        // === VISTAS DE LA APLICACIÓN ===
+        // =========================================================
 
-        document.getElementById('loginForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const username = e.target.username.value;
-            const password = e.target.password.value;
+        async function loadDashboard() {
+            setActiveLink('linkDashboard');
+            closeSidebar();
+            try {
+                const response = await callAppsScript('getDashboardData');
+                if (response.success) {
+                    const data = response.data;
+                    const dashboardHtml = `
+                        <h2 class="text-3xl font-bold text-gray-800 mb-6">Dashboard</h2>
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                            <div class="bg-white p-6 rounded-lg shadow-md flex items-center justify-between card-hover">
+                                <div>
+                                    <h3 class="text-lg font-medium text-gray-600">Total Aportes</h3>
+                                    <p class="text-3xl font-bold text-gray-900">$${data.totalAportes.toLocaleString('es-ES')}</p>
+                                </div>
+                                <i class="fas fa-money-bill-wave text-5xl text-blue-500 opacity-20"></i>
+                            </div>
+                            <div class="bg-white p-6 rounded-lg shadow-md flex items-center justify-between card-hover">
+                                <div>
+                                    <h3 class="text-lg font-medium text-gray-600">Participantes Activos</h3>
+                                    <p class="text-3xl font-bold text-gray-900">${data.participantesActivos}</p>
+                                </div>
+                                <i class="fas fa-user-check text-5xl text-green-500 opacity-20"></i>
+                            </div>
+                            <div class="bg-white p-6 rounded-lg shadow-md flex items-center justify-between card-hover">
+                                <div>
+                                    <h3 class="text-lg font-medium text-gray-600">Total Pendiente</h3>
+                                    <p class="text-3xl font-bold text-gray-900">$${data.totalPendiente.toLocaleString('es-ES')}</p>
+                                </div>
+                                <i class="fas fa-hand-holding-usd text-5xl text-red-500 opacity-20"></i>
+                            </div>
+                            <div class="bg-white p-6 rounded-lg shadow-md flex items-center justify-between card-hover">
+                                <div>
+                                    <h3 class="text-lg font-medium text-gray-600">Nuevos Aportes (Hoy)</h3>
+                                    <p class="text-3xl font-bold text-gray-900">N/A</p>
+                                </div>
+                                <i class="fas fa-calendar-day text-5xl text-purple-500 opacity-20"></i>
+                            </div>
+                        </div>
 
-            const response = await makeRequest('login', { usuario: username, password: password });
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                            <div class="bg-white p-6 rounded-lg shadow-md">
+                                <h3 class="text-xl font-semibold text-gray-800 mb-4">Aportes Mensuales</h3>
+                                <canvas id="monthlyAportesChart"></canvas>
+                            </div>
 
-            if (response.success) {
-                currentUser = response.user; // Store user details (username, role)
-                localStorage.setItem('currentUser', JSON.stringify(currentUser)); // Persist session
-                document.getElementById('loginScreen').classList.add('hidden');
-                document.getElementById('app').classList.remove('hidden');
-                document.getElementById('currentUser').textContent = currentUser.usuario; // Display username
-                showToast(`Bienvenido, ${currentUser.usuario}!`, 'success');
+                            <div class="bg-white p-6 rounded-lg shadow-md">
+                                <h3 class="text-xl font-semibold text-gray-800 mb-4">Últimos Aportes</h3>
+                                <div class="overflow-x-auto">
+                                    <table class="min-w-full bg-white">
+                                        <thead>
+                                            <tr>
+                                                <th class="py-2 px-4 border-b text-left">Participante</th>
+                                                <th class="py-2 px-4 border-b text-left">Monto</th>
+                                                <th class="py-2 px-4 border-b text-left">Fecha</th>
+                                                <th class="py-2 px-4 border-b text-left">Meses</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            ${data.ultimosAportes.map(aporte => `
+                                                <tr>
+                                                    <td class="py-2 px-4 border-b">${aporte.participanteNombre}</td>
+                                                    <td class="py-2 px-4 border-b">$${aporte.monto.toLocaleString('es-ES')}</td>
+                                                    <td class="py-2 px-4 border-b">${new Date(aporte.fecha).toLocaleDateString('es-ES')}</td>
+                                                    <td class="py-2 px-4 border-b">${aporte.meses.join(', ')}</td>
+                                                </tr>
+                                            `).join('')}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    showContent(dashboardHtml);
+                    renderMonthlyAportesChart(data.aportesMensuales);
 
-                // Adjust UI based on role
-                if (isTutora()) {
-                    // Hide elements specific to admin, if any
-                    // e.g., document.getElementById('adminOnlyButton').classList.add('hidden');
+                } else {
+                    showContent(`<p class="text-red-500">${response.message}</p>`);
                 }
-
-                showSection('dashboardSection'); // Show dashboard after login
-                updateDashboard();
-            } else {
-                showToast(response.message || 'Credenciales incorrectas.', 'error');
-            }
-        });
-
-        document.getElementById('logoutButton').addEventListener('click', () => {
-            currentUser = null;
-            localStorage.removeItem('currentUser'); // Clear session
-            document.getElementById('app').classList.add('hidden');
-            document.getElementById('loginScreen').classList.remove('hidden');
-            document.getElementById('username').value = ''; // Clear login form
-            document.getElementById('password').value = '';
-            showToast('Sesión cerrada.', 'info');
-        });
-
-        // Check for existing session on load
-        window.addEventListener('load', () => {
-            const storedUser = localStorage.getItem('currentUser');
-            if (storedUser) {
-                currentUser = JSON.parse(storedUser);
-                document.getElementById('loginScreen').classList.add('hidden');
-                document.getElementById('app').classList.remove('hidden');
-                document.getElementById('currentUser').textContent = currentUser.usuario;
-                showSection('dashboardSection');
-                updateDashboard();
-            } else {
-                document.getElementById('loginScreen').classList.remove('hidden');
-            }
-        });
-
-
-        // --- Dashboard Functions ---
-
-        async function updateDashboard() {
-            const response = await makeRequest('getDashboardData');
-            if (response.success) {
-                const data = response.data;
-                document.getElementById('totalAportes').textContent = data.totalAportes.toLocaleString();
-                document.getElementById('participantesActivos').textContent = data.participantesActivos;
-                document.getElementById('totalPendienteDashboard').textContent = data.totalPendiente.toLocaleString();
-                updateMonthlyChart(data.aportesMensuales);
-                displayLatestAportes(data.ultimosAportes);
-            } else {
-                showToast(response.message || 'Error al cargar datos del dashboard.', 'error');
+            } catch (error) {
+                console.error('Error al cargar dashboard:', error);
+                showContent('<p class="text-red-500">Error al cargar el dashboard.</p>');
             }
         }
-
-        function updateMonthlyChart(chartData) {
-            const ctx = document.getElementById('monthlyChart').getContext('2d');
-
-            const labels = Object.keys(chartData).sort((a, b) => {
-                // Sort by year then month (e.g., "2023-01")
-                const [yearA, monthA] = a.split('-').map(Number);
-                const [yearB, monthB] = b.split('-').map(Number);
-                if (yearA !== yearB) return yearA - yearB;
-                return monthA - monthB;
-            });
-            const values = labels.map(label => chartData[label]);
-
-            if (monthlyChartInstance) {
-                monthlyChartInstance.data.labels = labels;
-                monthlyChartInstance.data.datasets[0].data = values;
-                monthlyChartInstance.update();
-            } else {
-                monthlyChartInstance = new Chart(ctx, {
-                    type: 'line',
-                    data: {
-                        labels: labels,
-                        datasets: [{
-                            label: 'Aportes Recibidos ($)',
-                            data: values,
-                            borderColor: '#667eea',
-                            backgroundColor: 'rgba(102, 126, 234, 0.2)',
-                            fill: true,
-                            tension: 0.3
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: {
-                            legend: {
-                                display: false
-                            },
-                            tooltip: {
-                                callbacks: {
-                                    label: function (context) {
-                                        return `Monto: $${context.parsed.y.toLocaleString()}`;
-                                    }
-                                }
-                            }
-                        },
-                        scales: {
-                            y: {
-                                beginAtZero: true,
-                                title: {
-                                    display: true,
-                                    text: 'Monto ($)'
-                                }
-                            },
-                            x: {
-                                title: {
-                                    display: true,
-                                    text: 'Mes'
-                                }
-                            }
-                        }
-                    }
-                });
-            }
-        }
-
-        function displayLatestAportes(aportes) {
-            const latestAportesList = document.getElementById('latestAportesList');
-            latestAportesList.innerHTML = ''; // Clear previous entries
-
-            if (aportes.length === 0) {
-                latestAportesList.innerHTML = `<tr><td colspan="4" class="py-4 text-center text-gray-500">No hay aportes recientes.</td></tr>`;
-                return;
-            }
-
-            aportes.forEach(aporte => {
-                const row = document.createElement('tr');
-                row.classList.add('border-b', 'border-gray-200', 'hover:bg-gray-100', 'transition-colors');
-                row.innerHTML = `
-                    <td class="py-3 px-6 text-left">${aporte.participanteNombre}</td>
-                    <td class="py-3 px-6 text-left">$${aporte.monto.toLocaleString()}</td>
-                    <td class="py-3 px-6 text-left">${new Date(aporte.fecha).toLocaleDateString()}</td>
-                    <td class="py-3 px-6 text-left">${aporte.meses.join(', ')}</td>
-                `;
-                latestAportesList.appendChild(row);
-            });
-        }
-
-        // --- Participantes Functions ---
 
         async function loadParticipantes() {
-            const response = await makeRequest('getParticipantes');
-            if (response.success) {
-                participantesData = response.data;
-                filterParticipantes(); // Display all initially
-            } else {
-                showToast(response.message || 'Error al cargar participantes.', 'error');
-            }
-        }
-
-        function displayParticipantes(participantesToDisplay) {
-            const participantesList = document.getElementById('participantesList');
-            participantesList.innerHTML = ''; // Clear previous entries
-
-            if (participantesToDisplay.length === 0) {
-                participantesList.innerHTML = `<tr><td colspan="6" class="py-4 text-center text-gray-500">No se encontraron participantes.</td></tr>`;
-                return;
-            }
-
-            participantesToDisplay.forEach(participante => {
-                const row = document.createElement('tr');
-                row.classList.add('border-b', 'border-gray-200', 'hover:bg-gray-100', 'transition-colors');
-                row.innerHTML = `
-                    <td class="py-3 px-6 text-left font-medium">${participante.codigo}</td>
-                    <td class="py-3 px-6 text-left">${participante.nombre}</td>
-                    <td class="py-3 px-6 text-left">${participante.ciudadania}</td>
-                    <td class="py-3 px-6 text-left">${participante.tutora}</td>
-                    <td class="py-3 px-6 text-left">
-                        <span class="px-3 py-1 rounded-full text-xs font-semibold ${participante.estado === 'Activo' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}">
-                            ${participante.estado}
-                        </span>
-                    </td>
-                    <td class="py-3 px-6 text-center">
-                        <div class="flex item-center justify-center space-x-2">
-                            <button onclick="verDetalleParticipante('${participante.codigo}')"
-                                class="w-8 h-8 rounded-full bg-blue-100 hover:bg-blue-200 text-blue-600 transition-colors tooltip" data-tooltip="Ver Detalle">
-                                <i class="fas fa-eye"></i>
-                            </button>
-                            ${isAdmin() ? `
-                            <button onclick="editarParticipante('${participante.codigo}')"
-                                class="w-8 h-8 rounded-full bg-yellow-100 hover:bg-yellow-200 text-yellow-600 transition-colors tooltip" data-tooltip="Editar">
-                                <i class="fas fa-pencil-alt"></i>
-                            </button>
-                            <button onclick="eliminarParticipante('${participante.codigo}')"
-                                class="w-8 h-8 rounded-full bg-red-100 hover:bg-red-200 text-red-600 transition-colors tooltip" data-tooltip="Eliminar">
-                                <i class="fas fa-trash-alt"></i>
-                            </button>
-                            <button onclick="generarURLParticipante('${participante.codigo}')"
-                                class="w-8 h-8 rounded-full bg-purple-100 hover:bg-purple-200 text-purple-600 transition-colors tooltip" data-tooltip="Generar URL">
-                                <i class="fas fa-share-alt"></i>
-                            </button>
-                            ` : ''}
-                        </div>
-                    </td>
-                `;
-                participantesList.appendChild(row);
-            });
-        }
-
-        document.getElementById('searchParticipanteInput').addEventListener('keyup', filterParticipantes);
-
-        function filterParticipantes() {
-            const searchTerm = document.getElementById('searchParticipanteInput').value.toLowerCase();
-            const filtered = participantesData.filter(p =>
-                p.codigo.toLowerCase().includes(searchTerm) ||
-                p.nombre.toLowerCase().includes(searchTerm) ||
-                p.ciudadania.toLowerCase().includes(searchTerm) ||
-                p.tutora.toLowerCase().includes(searchTerm)
-            );
-            displayParticipantes(filtered);
-        }
-
-        document.getElementById('addParticipanteButton').addEventListener('click', () => {
-            document.getElementById('formRegistrarParticipante').reset();
-            document.getElementById('modalParticipanteTitle').textContent = 'Registrar Nuevo Participante';
-            currentEditingParticipant = null; // Clear editing state
-            document.getElementById('participanteCodigo').readOnly = false; // Allow editing code for new
-            showModal('modalRegistrarParticipante');
-        });
-
-        document.getElementById('cancelParticipanteButton').addEventListener('click', () => {
-            hideModal('modalRegistrarParticipante');
-        });
-
-        document.getElementById('formRegistrarParticipante').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const formData = new FormData(e.target);
-            const data = Object.fromEntries(formData.entries());
-
-            let response;
-            if (currentEditingParticipant) {
-                // Modifying existing participant
-                response = await makeRequest('modificarParticipante', { ...data, originalCodigo: currentEditingParticipant.codigo });
-            } else {
-                // Registering new participant
-                response = await makeRequest('registrarParticipante', data);
-            }
-
-            if (response.success) {
-                showToast(response.message || 'Participante guardado correctamente.', 'success');
-                hideModal('modalRegistrarParticipante');
-                loadParticipantes(); // Refresh list
-            } else {
-                showToast(response.message || 'Error al guardar participante.', 'error');
-            }
-        });
-
-        async function editarParticipante(codigo) {
-            const response = await makeRequest('getParticipanteDetalle', { codigo: codigo });
-            if (response.success && response.data) {
-                currentEditingParticipant = response.data;
-                document.getElementById('modalParticipanteTitle').textContent = 'Editar Participante';
-                document.getElementById('participanteCodigo').value = currentEditingParticipant.codigo;
-                document.getElementById('participanteCodigo').readOnly = true; // Prevent changing code when editing
-                document.getElementById('participanteNombre').value = currentEditingParticipant.nombre;
-                document.getElementById('participanteCiudadania').value = currentEditingParticipant.ciudadania;
-                document.getElementById('participanteTutora').value = currentEditingParticipant.tutora;
-                showModal('modalRegistrarParticipante');
-            } else {
-                showToast(response.message || 'Error al cargar datos del participante para edición.', 'error');
-            }
-        }
-
-        async function eliminarParticipante(codigo) {
-            if (confirm(`¿Está seguro de que desea eliminar al participante con código ${codigo}? Esta acción es irreversible.`)) {
-                const response = await makeRequest('eliminarParticipante', { codigo: codigo });
+            setActiveLink('linkParticipantes');
+            closeSidebar();
+            try {
+                const response = await callAppsScript('getParticipantes');
                 if (response.success) {
-                    showToast(response.message || 'Participante eliminado correctamente.', 'success');
-                    loadParticipantes(); // Refresh list
-                } else {
-                    showToast(response.message || 'Error al eliminar participante.', 'error');
-                }
-            }
-        }
-
-        async function verDetalleParticipante(codigo) {
-            const response = await makeRequest('getParticipanteDetalle', { codigo: codigo });
-            if (response.success && response.data) {
-                const participante = response.data;
-                const detalleContent = document.getElementById('participanteDetalleContent');
-                detalleContent.innerHTML = `
-                    <h1 class="text-3xl font-bold text-center mb-6">Estado de Cuenta - ${participante.nombre}</h1>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6 text-lg">
-                        <p><span class="font-medium">Código:</span> ${participante.codigo}</p>
-                        <p><span class="font-medium">Ciudadanía:</span> ${participante.ciudadania}</p>
-                        <p><span class="font-medium">Tutor/a:</span> ${participante.tutora}</p>
-                        <p><span class="font-medium">Último pago:</span> ${participante.ultimoPago || 'N/A'}</p>
-                        <p><span class="font-medium">Meses pendientes:</span> ${participante.mesesPendientes.join(', ') || 'Ninguno'}</p>
-                        <p><span class="font-medium">Total pendiente:</span> <span class="text-red-600">$${participante.totalPendiente.toLocaleString()}</span></p>
-                    </div>
-                    <h4 class="text-xl font-semibold text-gray-800 mb-4 mt-6">Historial de Pagos 🧾</h4>
-                    <div class="overflow-x-auto">
-                        <table class="min-w-full bg-white border border-gray-200 rounded-lg">
-                            <thead>
-                                <tr class="bg-gray-100 text-gray-700 uppercase text-sm leading-normal">
-                                    <th class="py-3 px-6 text-left border-b">Mes</th>
-                                    <th class="py-3 px-6 text-left border-b">Año</th>
-                                    <th class="py-3 px-6 text-left border-b">Estado</th>
-                                    <th class="py-3 px-6 text-left border-b">Monto Pagado</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                ${participante.matrizPagos.map(pago => `
-                                    <tr class="border-b border-gray-200 last:border-b-0 hover:bg-gray-50">
-                                        <td class="py-3 px-6 text-left">${pago.mes}</td>
-                                        <td class="py-3 px-6 text-left">${pago.año}</td>
-                                        <td class="py-3 px-6 text-left">
-                                            <span class="px-3 py-1 rounded-full text-xs font-semibold ${pago.estado === 'Pagado' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}">
-                                                ${pago.estado}
-                                            </span>
-                                        </td>
-                                        <td class="py-3 px-6 text-left">$${pago.montoPagado ? pago.montoPagado.toLocaleString() : '0'}</td>
-                                    </tr>
-                                `).join('')}
-                            </tbody>
-                        </table>
-                    </div>
-                `;
-                showModal('modalParticipanteDetalle');
-            } else {
-                showToast(response.message || 'Error al cargar el detalle del participante.', 'error');
-            }
-        }
-
-        document.getElementById('closeParticipanteDetalleButton').addEventListener('click', () => {
-            hideModal('modalParticipanteDetalle');
-        });
-
-        function generarURLParticipante(codigo) {
-            const publicUrl = `https://script.google.com/macros/s/AKfycbx_YOUR_DEPLOYMENT_ID_HERE/exec?participante=${codigo}`; // Ensure this matches your Apps Script doGet
-            navigator.clipboard.writeText(publicUrl).then(() => {
-                showToast('URL pública copiada al portapapeles!', 'info');
-            }).catch(err => {
-                console.error('Error al copiar URL: ', err);
-                showToast('No se pudo copiar la URL.', 'error');
-            });
-        }
-
-
-        // --- Aportes Functions ---
-
-        async function loadAportes() {
-            const response = await makeRequest('getAportes');
-            if (response.success) {
-                aportesData = response.data;
-                filterAportes(); // Display all initially
-            } else {
-                showToast(response.message || 'Error al cargar aportes.', 'error');
-            }
-        }
-
-        function displayAportes(aportesToDisplay) {
-            const aportesList = document.getElementById('aportesList');
-            aportesList.innerHTML = ''; // Clear previous entries
-
-            if (aportesToDisplay.length === 0) {
-                aportesList.innerHTML = `<tr><td colspan="5" class="py-4 text-center text-gray-500">No hay aportes registrados.</td></tr>`;
-                return;
-            }
-
-            aportesToDisplay.forEach(aporte => {
-                const row = document.createElement('tr');
-                row.classList.add('border-b', 'border-gray-200', 'hover:bg-gray-100', 'transition-colors');
-                row.innerHTML = `
-                    <td class="py-3 px-6 text-left">${aporte.participanteNombre}</td>
-                    <td class="py-3 px-6 text-left">${aporte.participanteCodigo}</td>
-                    <td class="py-3 px-6 text-left">$${aporte.monto.toLocaleString()}</td>
-                    <td class="py-3 px-6 text-left">${new Date(aporte.fecha).toLocaleDateString()}</td>
-                    <td class="py-3 px-6 text-left">${aporte.meses.join(', ')}</td>
-                `;
-                aportesList.appendChild(row);
-            });
-        }
-
-        document.getElementById('searchAporteInput').addEventListener('keyup', filterAportes);
-
-        function filterAportes() {
-            const searchTerm = document.getElementById('searchAporteInput').value.toLowerCase();
-            const filtered = aportesData.filter(a =>
-                a.participanteNombre.toLowerCase().includes(searchTerm) ||
-                a.participanteCodigo.toLowerCase().includes(searchTerm)
-            );
-            displayAportes(filtered);
-        }
-
-        document.getElementById('addAporteButton').addEventListener('click', async () => {
-            document.getElementById('formRegistrarAporte').reset();
-            // Load participants into the dropdown
-            const response = await makeRequest('getParticipantes'); // Re-fetch to ensure latest data
-            if (response.success) {
-                const selectParticipante = document.getElementById('aporteParticipante');
-                selectParticipante.innerHTML = '<option value="">Seleccione un participante</option>';
-                response.data.forEach(p => {
-                    const option = document.createElement('option');
-                    option.value = p.codigo;
-                    option.textContent = `${p.nombre} (${p.codigo})`;
-                    selectParticipante.appendChild(option);
-                });
-            } else {
-                showToast(response.message || 'Error al cargar participantes para el aporte.', 'error');
-                return; // Prevent opening modal if participants can't be loaded
-            }
-
-            // Set current date as default for aporteFecha
-            document.getElementById('aporteFecha').valueAsDate = new Date();
-
-            showModal('modalRegistrarAporte');
-        });
-
-        document.getElementById('cancelAporteButton').addEventListener('click', () => {
-            hideModal('modalRegistrarAporte');
-        });
-
-        document.getElementById('aporteParticipante').addEventListener('change', async (e) => {
-            const codigo = e.target.value;
-            const mesesCheckboxesDiv = document.getElementById('mesesCheckboxes');
-            mesesCheckboxesDiv.innerHTML = '';
-            document.getElementById('mesesError').classList.add('hidden');
-
-            if (codigo) {
-                const response = await makeRequest('getMesesDisponibles', { codigo: codigo });
-                if (response.success && response.data && response.data.length > 0) {
-                    response.data.forEach(mes => {
-                        const checkboxId = `mes-${mes.toLowerCase().replace(' ', '-')}`;
-                        mesesCheckboxesDiv.innerHTML += `
-                            <div class="flex items-center">
-                                <input type="checkbox" id="${checkboxId}" name="meses" value="${mes}" class="mr-2 h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
-                                <label for="${checkboxId}" class="text-gray-700">${mes}</label>
-                            </div>
-                        `;
-                    });
-                } else {
-                    mesesCheckboxesDiv.innerHTML = '<p class="text-gray-500">No hay meses pendientes o el participante está al día.</p>';
-                }
-            }
-        });
-
-
-        document.getElementById('formRegistrarAporte').addEventListener('submit', async (e) => {
-            e.preventDefault();
-
-            const selectedMonths = Array.from(document.querySelectorAll('#mesesCheckboxes input[name="meses"]:checked'))
-                .map(cb => cb.value);
-
-            if (selectedMonths.length === 0) {
-                document.getElementById('mesesError').classList.remove('hidden');
-                return;
-            } else {
-                document.getElementById('mesesError').classList.add('hidden');
-            }
-
-            const formData = new FormData(e.target);
-            const data = {
-                codigo: formData.get('codigo'),
-                monto: parseFloat(formData.get('monto')),
-                fecha: formData.get('fecha'),
-                meses: selectedMonths
-            };
-
-            const response = await makeRequest('registrarAporte', data);
-
-            if (response.success) {
-                showToast(response.message || 'Aporte registrado exitosamente.', 'success');
-                hideModal('modalRegistrarAporte');
-                loadAportes(); // Refresh aportes list
-                updateDashboard(); // Update dashboard with new totals
-            } else {
-                showToast(response.message || 'Error al registrar aporte.', 'error');
-            }
-        });
-
-        // Public View logic (for direct URL access to participant details)
-        async function checkURLParams() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const participanteCodigo = urlParams.get('participante');
-            if (participanteCodigo) {
-                // Hide main app if it's visible, prepare for public view
-                document.getElementById('loginScreen').classList.add('hidden');
-                document.getElementById('app').classList.add('hidden');
-
-                // If this is a direct public view request, we only need a specific fetch
-                const response = await makeRequest('getParticipanteDetalle', { codigo: participanteCodigo });
-                if (response.success && response.data) {
-                    // Populate and show the detail modal
-                    const participante = response.data;
-                    const detalleContent = document.getElementById('participanteDetalleContent');
-                    detalleContent.innerHTML = `
-                        <h1 class="text-3xl font-bold text-center mb-6">Estado de Cuenta - ${participante.nombre}</h1>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6 text-lg">
-                            <p><span class="font-medium">Código:</span> ${participante.codigo}</p>
-                            <p><span class="font-medium">Ciudadanía:</span> ${participante.ciudadania}</p>
-                            <p><span class="font-medium">Tutor/a:</span> ${participante.tutora}</p>
-                            <p><span class="font-medium">Último pago:</span> ${participante.ultimoPago || 'N/A'}</p>
-                            <p><span class="font-medium">Meses pendientes:</span> ${participante.mesesPendientes.join(', ') || 'Ninguno'}</p>
-                            <p><span class="font-medium">Total pendiente:</span> <span class="text-red-600">$${participante.totalPendiente.toLocaleString()}</span></p>
+                    let participantesHtml = `
+                        <h2 class="text-3xl font-bold text-gray-800 mb-6">Gestión de Participantes</h2>
+                        <div class="flex justify-end mb-4">
+                            <button id="addParticipantBtn" class="gradient-bg text-white font-bold py-2 px-4 rounded hover:opacity-90 transition-opacity">
+                                <i class="fas fa-plus mr-2"></i> Nuevo Participante
+                            </button>
                         </div>
-                        <h4 class="text-xl font-semibold text-gray-800 mb-4 mt-6">Historial de Pagos 🧾</h4>
-                        <div class="overflow-x-auto">
-                            <table class="min-w-full bg-white border border-gray-200 rounded-lg">
+                        <div class="bg-white p-6 rounded-lg shadow-md overflow-x-auto">
+                            <table class="min-w-full bg-white">
                                 <thead>
-                                    <tr class="bg-gray-100 text-gray-700 uppercase text-sm leading-normal">
-                                        <th class="py-3 px-6 text-left border-b">Mes</th>
-                                        <th class="py-3 px-6 text-left border-b">Año</th>
-                                        <th class="py-3 px-6 text-left border-b">Estado</th>
-                                        <th class="py-3 px-6 text-left border-b">Monto Pagado</th>
+                                    <tr>
+                                        <th class="py-2 px-4 border-b text-left">Código</th>
+                                        <th class="py-2 px-4 border-b text-left">Nombre</th>
+                                        <th class="py-2 px-4 border-b text-left">Ciudadanía</th>
+                                        <th class="py-2 px-4 border-b text-left">Tutora</th>
+                                        <th class="py-2 px-4 border-b text-left">Estado</th>
+                                        <th class="py-2 px-4 border-b text-left">Pendiente</th>
+                                        <th class="py-2 px-4 border-b text-left">Acciones</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    ${participante.matrizPagos.map(pago => `
-                                        <tr class="border-b border-gray-200 last:border-b-0 hover:bg-gray-50">
-                                            <td class="py-3 px-6 text-left">${pago.mes}</td>
-                                            <td class="py-3 px-6 text-left">${pago.año}</td>
-                                            <td class="py-3 px-6 text-left">
-                                                <span class="px-3 py-1 rounded-full text-xs font-semibold ${pago.estado === 'Pagado' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}">
-                                                    ${pago.estado}
+                                    ${response.data.map(p => `
+                                        <tr class="hover:bg-gray-50">
+                                            <td class="py-2 px-4 border-b">${p.codigo}</td>
+                                            <td class="py-2 px-4 border-b">${p.nombre}</td>
+                                            <td class="py-2 px-4 border-b">${p.ciudadania}</td>
+                                            <td class="py-2 px-4 border-b">${p.tutora}</td>
+                                            <td class="py-2 px-4 border-b">
+                                                <span class="px-2 py-1 rounded-full text-xs font-semibold ${p.estado === 'Activo' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}">
+                                                    ${p.estado}
                                                 </span>
                                             </td>
-                                            <td class="py-3 px-6 text-left">$${pago.montoPagado ? pago.montoPagado.toLocaleString() : '0'}</td>
+                                            <td class="py-2 px-4 border-b">$${p.totalPendiente.toLocaleString('es-ES')} (${p.mesesPendientes.length} meses)</td>
+                                            <td class="py-2 px-4 border-b">
+                                                <button class="text-blue-600 hover:text-blue-900 mr-2 edit-participant-btn" data-codigo="${p.codigo}" data-nombre="${p.nombre}" data-ciudadania="${p.ciudadania}" data-tutora="${p.tutora}">
+                                                    <i class="fas fa-edit"></i>
+                                                </button>
+                                                <button class="text-red-600 hover:text-red-900 delete-participant-btn" data-codigo="${p.codigo}">
+                                                    <i class="fas fa-trash-alt"></i>
+                                                </button>
+                                                <button class="text-purple-600 hover:text-purple-900 ml-2 view-detail-btn" data-codigo="${p.codigo}">
+                                                    <i class="fas fa-eye"></i>
+                                                </button>
+                                            </td>
                                         </tr>
                                     `).join('')}
                                 </tbody>
                             </table>
                         </div>
                     `;
-                    showModal('modalParticipanteDetalle');
-                    // Hide the close button for public view, if preferred, or leave it.
-                    document.getElementById('closeParticipanteDetalleButton').classList.add('hidden');
+                    showContent(participantesHtml);
+                    document.getElementById('addParticipantBtn').addEventListener('click', () => openParticipantModal('add'));
+                    document.querySelectorAll('.edit-participant-btn').forEach(button => {
+                        button.addEventListener('click', (e) => openParticipantModal('edit', e.currentTarget.dataset));
+                    });
+                    document.querySelectorAll('.delete-participant-btn').forEach(button => {
+                        button.addEventListener('click', (e) => deleteParticipant(e.currentTarget.dataset.codigo));
+                    });
+                    document.querySelectorAll('.view-detail-btn').forEach(button => {
+                        button.addEventListener('click', (e) => {
+                            const codigo = e.currentTarget.dataset.codigo;
+                            window.location.hash = `#participante=${codigo}`; // Change URL hash
+                            loadParticipanteDetalle(codigo); // Load detail directly
+                        });
+                    });
+
                 } else {
-                    // Show error or redirect to login if public view fails
-                    showToast(response.message || 'Participante no encontrado o error al cargar.', 'error');
-                    document.getElementById('loginScreen').classList.remove('hidden');
+                    showContent(`<p class="text-red-500">${response.message}</p>`);
                 }
-            } else {
-                // If no participant code, proceed with normal app load (session check)
-                const storedUser = localStorage.getItem('currentUser');
-                if (storedUser) {
-                    currentUser = JSON.parse(storedUser);
-                    document.getElementById('loginScreen').classList.add('hidden');
-                    document.getElementById('app').classList.remove('hidden');
-                    document.getElementById('currentUser').textContent = currentUser.usuario;
-                    showSection('dashboardSection');
-                    updateDashboard();
+            } catch (error) {
+                console.error('Error al cargar participantes:', error);
+                showContent('<p class="text-red-500">Error al cargar los participantes.</p>');
+            }
+        }
+
+
+        async function loadAportes() {
+            setActiveLink('linkAportes');
+            closeSidebar();
+            try {
+                const response = await callAppsScript('getAportes');
+                if (response.success) {
+                    const aportesHtml = `
+                        <h2 class="text-3xl font-bold text-gray-800 mb-6">Gestión de Aportes</h2>
+                        <div class="flex justify-end mb-4">
+                            <button id="addAporteBtn" class="gradient-bg text-white font-bold py-2 px-4 rounded hover:opacity-90 transition-opacity">
+                                <i class="fas fa-plus mr-2"></i> Registrar Aporte
+                            </button>
+                        </div>
+                        <div class="bg-white p-6 rounded-lg shadow-md overflow-x-auto">
+                            <table class="min-w-full bg-white">
+                                <thead>
+                                    <tr>
+                                        <th class="py-2 px-4 border-b text-left">ID</th>
+                                        <th class="py-2 px-4 border-b text-left">Código</th>
+                                        <th class="py-2 px-4 border-b text-left">Participante</th>
+                                        <th class="py-2 px-4 border-b text-left">Mes(es)</th>
+                                        <th class="py-2 px-4 border-b text-left">Monto</th>
+                                        <th class="py-2 px-4 border-b text-left">Fecha</th>
+                                        <th class="py-2 px-4 border-b text-left">Tutora</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${response.data.map(a => `
+                                        <tr class="hover:bg-gray-50">
+                                            <td class="py-2 px-4 border-b">${a.id}</td>
+                                            <td class="py-2 px-4 border-b">${a.participanteCodigo}</td>
+                                            <td class="py-2 px-4 border-b">${a.participanteNombre}</td>
+                                            <td class="py-2 px-4 border-b">${a.meses.join(', ')}</td>
+                                            <td class="py-2 px-4 border-b">$${a.total.toLocaleString('es-ES')}</td>
+                                            <td class="py-2 px-4 border-b">${a.fecha ? new Date(a.fecha).toLocaleDateString('es-ES') : 'N/A'}</td>
+                                            <td class="py-2 px-4 border-b">${a.tutora}</td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    `;
+                    showContent(aportesHtml);
+                    document.getElementById('addAporteBtn').addEventListener('click', openAporteModal);
                 } else {
-                    document.getElementById('loginScreen').classList.remove('hidden');
+                    showContent(`<p class="text-red-500">${response.message}</p>`);
+                }
+            } catch (error) {
+                console.error('Error al cargar aportes:', error);
+                showContent('<p class="text-red-500">Error al cargar los aportes.</p>');
+            }
+        }
+
+
+        async function loadReportes() {
+            setActiveLink('linkReportes');
+            closeSidebar();
+            // Esto es un placeholder. Aquí integrarías tu lógica de reportes.
+            showContent(`
+                <h2 class="text-3xl font-bold text-gray-800 mb-6">Generación de Reportes</h2>
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <p>Aquí podrás generar diversos reportes sobre participantes y aportes.</p>
+                    <p class="mt-4 text-gray-600">Funcionalidad en desarrollo...</p>
+                </div>
+            `);
+        }
+
+        async function loadParticipanteDetalle(codigo) {
+            closeSidebar();
+            try {
+                const response = await callAppsScript('getParticipanteDetalle', { codigo: codigo });
+                if (response.success) {
+                    const participante = response.data;
+                    let detailHtml = `
+                        <h2 class="text-3xl font-bold text-gray-800 mb-6">Detalle de Participante</h2>
+                        <button onclick="window.history.back()" class="text-blue-600 hover:text-blue-800 mb-4"><i class="fas fa-arrow-left mr-2"></i> Volver a Participantes</button>
+                        <div class="bg-white p-6 rounded-lg shadow-md">
+                            <h3 class="text-2xl font-bold mb-4">${participante.nombre} (${participante.codigo})</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                                <p><span class="font-medium">Ciudadanía:</span> ${participante.ciudadania}</p>
+                                <p><span class="font-medium">Tutora:</span> ${participante.tutora}</p>
+                                <p><span class="font-medium">Fecha Registro:</span> ${participante.fecharegistro}</p>
+                                <p><span class="font-medium">Estado:</span> <span class="px-2 py-1 rounded-full text-xs font-semibold ${participante.estado === 'Activo' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}">${participante.estado}</span></p>
+                                <p><span class="font-medium">Último Pago:</span> ${participante.ultimoPago}</p>
+                                <p><span class="font-medium">Total Pendiente:</span> $${participante.totalPendiente.toLocaleString('es-ES')}</p>
+                            </div>
+
+                            <h4 class="text-xl font-semibold text-gray-800 mb-3">Matriz de Pagos Anual</h4>
+                            <div class="overflow-x-auto mb-6">
+                                <table class="min-w-full bg-white border border-gray-200">
+                                    <thead>
+                                        <tr class="bg-gray-100">
+                                            <th class="py-2 px-4 border-b border-r text-left">Mes</th>
+                                            <th class="py-2 px-4 border-b border-r text-left">Año</th>
+                                            <th class="py-2 px-4 border-b border-r text-left">Estado</th>
+                                            <th class="py-2 px-4 border-b text-left">Monto Pagado</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        ${participante.matrizPagos.map(item => `
+                                            <tr class="${item.estado === 'Pagado' ? 'bg-green-50' : 'bg-red-50'} hover:bg-gray-100">
+                                                <td class="py-2 px-4 border-b border-r">${item.mes}</td>
+                                                <td class="py-2 px-4 border-b border-r">${item.año}</td>
+                                                <td class="py-2 px-4 border-b border-r">${item.estado}</td>
+                                                <td class="py-2 px-4 border-b">$${item.montoPagado.toLocaleString('es-ES')}</td>
+                                            </tr>
+                                        `).join('')}
+                                    </tbody>
+                                </table>
+                            </div>
+                            
+                            <h4 class="text-xl font-semibold text-gray-800 mb-3">Historial de Aportes</h4>
+                            <div class="overflow-x-auto">
+                                <table class="min-w-full bg-white border border-gray-200">
+                                    <thead>
+                                        <tr class="bg-gray-100">
+                                            <th class="py-2 px-4 border-b text-left">ID Aporte</th>
+                                            <th class="py-2 px-4 border-b text-left">Mes(es)</th>
+                                            <th class="py-2 px-4 border-b text-left">Monto Total</th>
+                                            <th class="py-2 px-4 border-b text-left">Fecha Aporte</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        ${participante.aportes.map(aporte => `
+                                            <tr class="hover:bg-gray-50">
+                                                <td class="py-2 px-4 border-b">${aporte.id}</td>
+                                                <td class="py-2 px-4 border-b">${aporte.meses.join(', ')}</td>
+                                                <td class="py-2 px-4 border-b">$${aporte.total.toLocaleString('es-ES')}</td>
+                                                <td class="py-2 px-4 border-b">${new Date(aporte.fecha).toLocaleDateString('es-ES')}</td>
+                                            </tr>
+                                        `).join('')}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    `;
+                    showContent(detailHtml);
+                } else {
+                    showContent(`<p class="text-red-500">${response.message}</p>`);
+                }
+            } catch (error) {
+                console.error('Error al cargar detalle del participante:', error);
+                showContent('<p class="text-red-500">Error al cargar el detalle del participante.</p>');
+            }
+        }
+
+
+        // =========================================================
+        // === MODALES Y FORMULARIOS ===
+        // =========================================================
+
+        function openParticipantModal(mode, data = {}) {
+            const modal = document.getElementById('participantModal');
+            const form = document.getElementById('participantForm');
+            const title = document.getElementById('participantModalTitle');
+            const submitBtn = form.querySelector('button[type="submit"]');
+            const errorDiv = document.getElementById('participantError');
+
+            errorDiv.classList.add('hidden'); // Ocultar errores previos
+            form.reset(); // Limpiar formulario
+
+            if (mode === 'add') {
+                title.textContent = 'Registrar Participante';
+                submitBtn.textContent = 'Guardar';
+                document.getElementById('originalCodigo').value = '';
+                document.getElementById('p-codigo').readOnly = false;
+            } else { // mode === 'edit'
+                title.textContent = 'Modificar Participante';
+                submitBtn.textContent = 'Actualizar';
+                document.getElementById('originalCodigo').value = data.codigo;
+                document.getElementById('p-codigo').value = data.codigo;
+                document.getElementById('p-nombre').value = data.nombre;
+                document.getElementById('p-ciudadania').value = data.ciudadania;
+                document.getElementById('p-tutora').value = data.tutora;
+                document.getElementById('p-codigo').readOnly = false; // Permitir editar código si es necesario
+            }
+            modal.classList.remove('hidden');
+        }
+
+        function closeParticipantModal() {
+            document.getElementById('participantModal').classList.add('hidden');
+        }
+
+        document.getElementById('participantForm').addEventListener('submit', async function (e) {
+            e.preventDefault();
+            const originalCodigo = document.getElementById('originalCodigo').value;
+            const formData = {
+                codigo: document.getElementById('p-codigo').value,
+                nombre: document.getElementById('p-nombre').value,
+                ciudadania: document.getElementById('p-ciudadania').value,
+                tutora: document.getElementById('p-tutora').value,
+            };
+
+            const errorDiv = document.getElementById('participantError');
+            errorDiv.classList.add('hidden');
+
+            try {
+                let response;
+                if (originalCodigo) { // Editing existing participant
+                    response = await callAppsScript('modificarParticipante', { ...formData, originalCodigo: originalCodigo });
+                } else { // Adding new participant
+                    response = await callAppsScript('registrarParticipante', formData);
+                }
+
+                if (response.success) {
+                    closeParticipantModal();
+                    loadParticipantes(); // Recargar la tabla de participantes
+                    alert(response.message);
+                } else {
+                    errorDiv.textContent = response.message;
+                    errorDiv.classList.remove('hidden');
+                }
+            } catch (error) {
+                console.error('Error en formulario de participante:', error);
+                errorDiv.textContent = 'Ocurrió un error inesperado al guardar.';
+                errorDiv.classList.remove('hidden');
+            }
+        });
+
+        document.getElementById('cancelParticipant').addEventListener('click', closeParticipantModal);
+
+        async function deleteParticipant(codigo) {
+            if (confirm(`¿Estás seguro de eliminar al participante con código ${codigo}? Esta acción es irreversible.`)) {
+                try {
+                    const response = await callAppsScript('eliminarParticipante', { codigo: codigo });
+                    if (response.success) {
+                        loadParticipantes(); // Recargar la tabla
+                        alert(response.message);
+                    } else {
+                        alert(`Error: ${response.message}`);
+                    }
+                } catch (error) {
+                    console.error('Error al eliminar participante:', error);
+                    alert('Ocurrió un error inesperado al eliminar el participante.');
                 }
             }
         }
 
-        // Run check on initial load
+
+        async function openAporteModal() {
+            const modal = document.getElementById('aporteModal');
+            const form = document.getElementById('aporteForm');
+            const errorDiv = document.getElementById('aporteError');
+            const mesesSelect = document.getElementById('a-meses');
+
+            errorDiv.classList.add('hidden');
+            form.reset();
+            mesesSelect.innerHTML = '<option value="">Cargando...</option>'; // Placeholder
+
+            // Set default date to today
+            const today = new Date();
+            const yyyy = today.getFullYear();
+            const mm = String(today.getMonth() + 1).padStart(2, '0'); // Months are 0-indexed
+            const dd = String(today.getDate()).padStart(2, '0');
+            document.getElementById('a-fecha').value = `${yyyy}-${mm}-${dd}`;
+
+
+            modal.classList.remove('hidden');
+
+            // Autocompletar nombre del participante y cargar meses disponibles al escribir el código
+            document.getElementById('a-codigo').addEventListener('input', async function () {
+                const codigo = this.value;
+                const nombreInput = document.getElementById('a-nombre-participante');
+                mesesSelect.innerHTML = ''; // Clear previous options
+
+                if (codigo.length > 0) {
+                    const response = await callAppsScript('getParticipanteDetalle', { codigo: codigo });
+                    if (response.success && response.data) {
+                        nombreInput.value = response.data.nombre;
+                        const mesesDisponibles = response.data.mesesPendientes;
+                        if (mesesDisponibles.length > 0) {
+                            mesesDisponibles.forEach(mes => {
+                                const option = document.createElement('option');
+                                option.value = mes;
+                                option.textContent = mes;
+                                mesesSelect.appendChild(option);
+                            });
+                        } else {
+                            mesesSelect.innerHTML = '<option value="">Todos los meses pagados o no disponibles</option>';
+                        }
+                    } else {
+                        nombreInput.value = 'Participante no encontrado';
+                        mesesSelect.innerHTML = '<option value="">No disponible</option>';
+                    }
+                } else {
+                    nombreInput.value = '';
+                    mesesSelect.innerHTML = '';
+                }
+            }, { once: false }); // Allow multiple inputs
+
+            // Populate months initially if a code is pre-filled (e.g., from a URL param) - unlikely for this modal
+            // but good practice.
+            // For now, it relies on the 'input' event.
+        }
+
+        function closeAporteModal() {
+            document.getElementById('aporteModal').classList.add('hidden');
+            // Remove event listener to prevent multiple bindings on subsequent opens
+            document.getElementById('a-codigo').removeEventListener('input', () => {});
+        }
+
+        document.getElementById('aporteForm').addEventListener('submit', async function (e) {
+            e.preventDefault();
+            const errorDiv = document.getElementById('aporteError');
+            errorDiv.classList.add('hidden');
+
+            const selectedMonths = Array.from(document.getElementById('a-meses').selectedOptions).map(option => option.value);
+
+            const formData = {
+                codigo: document.getElementById('a-codigo').value,
+                monto: parseFloat(document.getElementById('a-monto').value),
+                fecha: document.getElementById('a-fecha').value,
+                meses: selectedMonths,
+            };
+
+            if (selectedMonths.length === 0) {
+                errorDiv.textContent = 'Debes seleccionar al menos un mes para el aporte.';
+                errorDiv.classList.remove('hidden');
+                return;
+            }
+
+            try {
+                const response = await callAppsScript('registrarAporte', formData);
+                if (response.success) {
+                    closeAporteModal();
+                    loadAportes(); // Recargar la tabla de aportes
+                    alert(response.message);
+                } else {
+                    errorDiv.textContent = response.message;
+                    errorDiv.classList.remove('hidden');
+                }
+            } catch (error) {
+                console.error('Error en formulario de aporte:', error);
+                errorDiv.textContent = 'Ocurrió un error inesperado al registrar el aporte.';
+                errorDiv.classList.remove('hidden');
+            }
+        });
+
+        document.getElementById('cancelAporte').addEventListener('click', closeAporteModal);
+
+
+        // =========================================================
+        // === GRÁFICOS ===
+        // =========================================================
+
+        let monthlyAportesChart = null; // Variable para mantener la instancia del gráfico
+
+        function renderMonthlyAportesChart(data) {
+            const ctx = document.getElementById('monthlyAportesChart').getContext('2d');
+
+            const labels = Object.keys(data).sort(); // Ordenar por año-mes
+            const values = labels.map(key => data[key]);
+
+            if (monthlyAportesChart) {
+                monthlyAportesChart.destroy(); // Destruir instancia anterior si existe
+            }
+
+            monthlyAportesChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Aportes Mensuales ($)',
+                        data: values,
+                        backgroundColor: 'rgba(102, 126, 234, 0.7)',
+                        borderColor: 'rgba(102, 126, 234, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Monto ($)'
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Mes'
+                            }
+                        }
+                    },
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return context.dataset.label + ': $' + context.parsed.y.toLocaleString('es-ES');
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+
+        // =========================================================
+        // === AUTENTICACIÓN Y ESTADO DE LA SESIÓN ===
+        // =========================================================
+
+        function checkLoginStatus() {
+            const storedUser = localStorage.getItem('currentUser');
+            if (storedUser) {
+                currentUser = JSON.parse(storedUser);
+                document.getElementById('loginModal').classList.add('hidden');
+                document.getElementById('loggedInUser').textContent = `Hola, ${currentUser.usuario}`;
+                loadDashboard(); // Cargar dashboard después de login
+            } else {
+                document.getElementById('loginModal').classList.remove('hidden');
+            }
+        }
+
+        document.getElementById('loginForm').addEventListener('submit', async function (e) {
+            e.preventDefault();
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const loginErrorDiv = document.getElementById('loginError');
+            loginErrorDiv.classList.add('hidden'); // Ocultar errores previos
+
+            try {
+                const response = await callAppsScript('login', { usuario: username, password: password });
+                if (response.success) {
+                    currentUser = response.user;
+                    localStorage.setItem('currentUser', JSON.stringify(currentUser));
+                    document.getElementById('loginModal').classList.add('hidden');
+                    document.getElementById('loggedInUser').textContent = `Hola, ${currentUser.usuario}`;
+                    loadDashboard(); // Cargar dashboard después del login exitoso
+                } else {
+                    loginErrorDiv.textContent = response.message;
+                    loginErrorDiv.classList.remove('hidden');
+                }
+            } catch (error) {
+                console.error('Error durante el login:', error);
+                loginErrorDiv.textContent = 'Error de red o servidor. Intenta de nuevo.';
+                loginErrorDiv.classList.remove('hidden');
+            }
+        });
+
+        document.getElementById('logoutButton').addEventListener('click', function (e) {
+            e.preventDefault();
+            localStorage.removeItem('currentUser');
+            currentUser = null;
+            document.getElementById('loggedInUser').textContent = '';
+            checkLoginStatus(); // Volver a mostrar el modal de login
+        });
+
+
+        // =========================================================
+        // === EVENT LISTENERS Y CARGA INICIAL ===
+        // =========================================================
+
+        document.getElementById('linkDashboard').addEventListener('click', (e) => { e.preventDefault(); loadDashboard(); });
+        document.getElementById('linkParticipantes').addEventListener('click', (e) => { e.preventDefault(); loadParticipantes(); });
+        document.getElementById('linkAportes').addEventListener('click', (e) => { e.preventDefault(); loadAportes(); });
+        document.getElementById('linkReportes').addEventListener('click', (e) => { e.preventDefault(); loadReportes(); });
+
+
+        // Manejar apertura/cierre de sidebar
+        document.getElementById('openSidebar').addEventListener('click', () => {
+            document.getElementById('sidebar').classList.remove('sidebar-closed');
+        });
+        document.getElementById('closeSidebar').addEventListener('click', () => {
+            document.getElementById('sidebar').classList.add('sidebar-closed');
+        });
+
+
+        // Verificar si hay parámetro de URL al cargar para vista pública de participante
+        async function checkURLParams() {
+            const params = new URLSearchParams(window.location.hash.substring(1)); // Get hash part
+            const participanteCodigo = params.get('participante');
+            if (participanteCodigo) {
+                // If a participant code is in the URL, try to load its details directly
+                document.getElementById('loginModal').classList.add('hidden'); // Hide login if directly viewing a participant
+                await loadParticipanteDetalle(participanteCodigo);
+            } else {
+                // Otherwise, proceed with normal login check
+                checkLoginStatus();
+            }
+        }
+
+        // Verificar parámetros de URL al cargar
         window.addEventListener('load', checkURLParams);
 
-
-        // Responsive sidebar logic
+        // Responsive sidebar
         window.addEventListener('resize', function () {
             const sidebar = document.getElementById('sidebar');
             if (window.innerWidth >= 768) {
