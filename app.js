@@ -41,20 +41,24 @@ function hideAdminElements() {
 async function fetchData(action, params = {}, method = 'GET', body = null) {
     const url = new URL(APPS_SCRIPT_WEB_APP_URL);
     url.searchParams.append('action', action);
+    // Siempre se envían username y password para la autenticación
     url.searchParams.append('username', usernameInput.value);
     url.searchParams.append('password', passwordInput.value);
 
+    // Añadir otros parámetros específicos de la acción
     for (const key in params) {
         url.searchParams.append(key, params[key]);
     }
 
     const options = {
         method: method,
-        headers: {
-            'Content-Type': 'application/json'
-        }
     };
-    if (body) {
+
+    // SOLO añadir cabeceras y cuerpo si es una petición POST y tiene un 'body'
+    if (method === 'POST' && body) {
+        options.headers = {
+            'Content-Type': 'application/json'
+        };
         options.body = JSON.stringify(body);
     }
 
@@ -72,13 +76,11 @@ async function fetchData(action, params = {}, method = 'GET', body = null) {
 
 // --- Autenticación ---
 loginButton.addEventListener('click', async () => {
-    const username = usernameInput.value;
-    const password = passwordInput.value;
-
+    // username y password se obtienen directamente de los inputs dentro de fetchData
     loginMessage.textContent = 'Iniciando sesión...';
     // Llama a un endpoint 'login' en Apps Script
-    // Asegúrate de que tu Apps Script tenga una lógica para 'login' que devuelva el rol
-    const response = await fetchData('login', { username, password }, 'GET');
+    // Ya no necesitas pasar { username, password } aquí, fetchData los coge de los inputs
+    const response = await fetchData('login', {}, 'GET');
 
     if (response.status === 'success') {
         currentUserRole = response.role;
@@ -208,13 +210,13 @@ async function loadAportesList(monthFilter = '', tutoraFilter = '', searchTerm =
 
     const response = await fetchData('getAportes');
     if (response.status === 'success') {
-        let filteredAportes = response.filter(aporte => {
-            const aporteDate = new Date(aporte.fecha_aporte);
+        let filteredAportes = response.data.filter(aporte => { // 'response.data' porque getAportes devuelve { status: 'success', data: [...] }
+            const aporteDate = new Date(aporte.Fecha_Aporte);
             const monthMatches = monthFilter ? (aporteDate.getFullYear() === new Date(monthFilter).getFullYear() && aporteDate.getMonth() === new Date(monthFilter).getMonth()) : true;
-            const tutoraMatches = tutoraFilter ? (aporte.tutora.toLowerCase() === tutoraFilter.toLowerCase()) : true;
+            const tutoraMatches = tutoraFilter ? (aporte.Tutora && aporte.Tutora.toLowerCase() === tutoraFilter.toLowerCase()) : true;
             const searchMatches = searchTerm ? (
-                aporte.nombre_participante.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                (aporte.id_participante && aporte.id_participante.toLowerCase().includes(searchTerm.toLowerCase())) // Asumiendo que el ID podría ser el 'código' buscado
+                (aporte.Nombre_Participante && aporte.Nombre_Participante.toLowerCase().includes(searchTerm.toLowerCase())) ||
+                (aporte.ID_Participante && aporte.ID_Participante.toLowerCase().includes(searchTerm.toLowerCase()))
             ) : true;
             return monthMatches && tutoraMatches && searchMatches;
         });
@@ -223,14 +225,14 @@ async function loadAportesList(monthFilter = '', tutoraFilter = '', searchTerm =
             filteredAportes.forEach(aporte => {
                 const row = `
                     <tr>
-                        <td>${new Date(aporte.fecha_aporte).toLocaleDateString()}</td>
-                        <td>${aporte.nombre_participante}</td>
-                        <td class="admin-only">${aporte.tutora}</td>
-                        <td>$${aporte.monto_total_pagado}</td>
-                        <td>${aporte.meses_pagados || 'N/A'}</td>
-                        <td>$${aporte.monto_abono || 0}</td>
+                        <td>${new Date(aporte.Fecha_Aporte).toLocaleDateString()}</td>
+                        <td>${aporte.Nombre_Participante}</td>
+                        <td class="admin-only">${aporte.Tutora}</td>
+                        <td>$${parseFloat(aporte.Monto_Total_Pagado).toFixed(2)}</td>
+                        <td>${aporte.Meses_Pagados || 'N/A'}</td>
+                        <td>$${parseFloat(aporte.Monto_Abono || 0).toFixed(2)}</td>
                         <td>
-                            <button class="view-aporte-details" data-id="${aporte.id_aporte}">Ver</button>
+                            <button class="view-aporte-details" data-id="${aporte.ID_Aporte}">Ver</button>
                         </td>
                     </tr>
                 `;
@@ -262,7 +264,7 @@ async function loadParticipantesForSelect() {
 
     const response = await fetchData('getParticipantes');
     if (response.status === 'success') {
-        response.forEach(p => {
+        response.data.forEach(p => { // Acceder a 'response.data'
             const option = document.createElement('option');
             option.value = p.id;
             option.textContent = `${p.nombre} (${p.codigo})`;
@@ -330,22 +332,29 @@ async function calculateTotalAmountDue() {
                                .map(cb => cb.value);
     const abono = parseFloat(document.getElementById('monto-abono').value) || 0;
 
-    const response = await fetchData('getParticipantDetails', { id: selectedParticipantId });
-    if (response.status === 'success') {
-        const currentAporteValue = await getAporteValueFrontend();
+    // Aquí se necesita el valor del aporte por mes de forma dinámica del backend si es posible,
+    // o usar la lógica actual del frontend si es fija.
+    // Para simplificar y seguir el flujo, usamos la lógica de frontend por ahora:
+    const currentAporteValue = await getAporteValueFrontend();
 
-        const totalMesesCalculado = selectedMonths.length * currentAporteValue;
-        const totalACobrar = totalMesesCalculado - abono;
-        document.getElementById('monto-total-a-cobrar').value = `$${Math.max(0, totalACobrar).toFixed(2)}`;
-    }
+    const totalMesesCalculado = selectedMonths.length * currentAporteValue;
+    const totalACobrar = totalMesesCalculado - abono;
+    document.getElementById('monto-total-a-cobrar').value = `$${Math.max(0, totalACobrar).toFixed(2)}`;
 }
 
 // Helper para obtener el valor del aporte (simulando la llamada a Apps Script)
 async function getAporteValueFrontend() {
+    // Si quieres que esto sea dinámico desde el backend, necesitarías un endpoint en Apps Script
+    // que devuelva los valores de aporte desde la hoja de Configuración.
+    // Por ahora, se mantiene la lógica fija según las fechas.
     const today = new Date();
-    if (today >= new Date('2024-07-01')) {
+    // Ajustar fechas a inicio de mes para comparación precisa
+    const todayMonthStart = new Date(today.getFullYear(), today.getMonth(), 1);
+    const julio2024Start = new Date(2024, 6, 1); // Mes 6 es Julio
+
+    if (todayMonthStart >= julio2024Start) {
         return 3000;
-    } else {
+    } else { // Asumiendo que el aporte de 2000 es antes de Julio 2024
         return 2000;
     }
 }
@@ -355,11 +364,11 @@ document.getElementById('registrar-aporte-button').addEventListener('click', asy
     const participantId = document.getElementById('select-participante').value;
     const mesesAPagar = Array.from(document.querySelectorAll('#meses-a-pagar-checkboxes input:checked'))
                                .map(cb => cb.value);
-    const montoTotalPagado = parseFloat(document.getElementById('monto-recibido').value) || 0;
-    const abono = parseFloat(document.getElementById('monto-abono').value) || 0;
+    const montoRecibido = parseFloat(document.getElementById('monto-recibido').value) || 0;
+    const abonoInput = parseFloat(document.getElementById('monto-abono').value) || 0;
     const registroMessage = document.getElementById('registro-message');
 
-    if (!participantId || mesesAPagar.length === 0 || montoTotalPagado <= 0) {
+    if (!participantId || mesesAPagar.length === 0 || montoRecibido <= 0) {
         registroMessage.textContent = 'Por favor, seleccione un participante, al menos un mes y el monto recibido.';
         registroMessage.className = 'message error';
         return;
@@ -367,21 +376,26 @@ document.getElementById('registrar-aporte-button').addEventListener('click', asy
 
     const currentAporteValue = await getAporteValueFrontend();
     const valorMesesTeorico = mesesAPagar.length * currentAporteValue;
-    let montoPagoMeses = valorMesesTeorico;
-    let montoAbonoReal = abono;
+    
+    let montoTotalPagado; // El monto que se registrará como "total pagado"
+    let montoAbonoReal;   // El abono real que se registrará
+    let montoPagoMeses;   // El monto que cubre los meses
 
-    if (montoTotalPagado > valorMesesTeorico) {
-        montoAbonoReal = montoTotalPagado - valorMesesTeorico;
-    } else if (montoTotalPagado < valorMesesTeorico) {
-        montoPagoMeses = montoTotalPagado - abono;
-        if (montoPagoMeses < 0) {
+    // Si el monto recibido es mayor o igual al valor de los meses, cubre los meses y puede haber abono
+    if (montoRecibido >= valorMesesTeorico) {
+        montoPagoMeses = valorMesesTeorico;
+        montoAbonoReal = montoRecibido - valorMesesTeorico;
+        montoTotalPagado = montoRecibido;
+    } else { // Si el monto recibido es menor que el valor de los meses, es un pago parcial
+        montoAbonoReal = abonoInput; // El abono se mantiene como el input del usuario
+        montoPagoMeses = montoRecibido - abonoInput; // El resto del monto recibido cubre meses
+        if (montoPagoMeses < 0) { // Si el abono es mayor que el recibido, no hay pago de meses
             montoPagoMeses = 0;
+            montoAbonoReal = montoRecibido; // Todo el monto recibido es un abono
         }
-        montoAbonoReal = abono;
+        montoTotalPagado = montoRecibido;
         registroMessage.textContent = 'Advertencia: El monto recibido es menor al total de los meses seleccionados. Se registrará un pago parcial.';
         registroMessage.className = 'message info';
-    } else {
-        montoAbonoReal = abono;
     }
 
 
@@ -391,9 +405,9 @@ document.getElementById('registrar-aporte-button').addEventListener('click', asy
     const data = {
         id_participante: participantId,
         mesesAPagar: mesesAPagar,
-        montoTotalPagado: montoTotalPagado,
-        montoPagoMeses: montoPagoMeses,
-        abono: montoAbonoReal
+        montoTotalPagado: montoTotalPagado, // Monto total que el padre entregó
+        montoPagoMeses: montoPagoMeses,     // Parte del monto que cubre los meses
+        abono: montoAbonoReal               // Parte del monto que es abono
     };
 
     const response = await fetchData('recordAporte', {}, 'POST', data);
@@ -424,18 +438,18 @@ async function loadTutoraParticipantes() {
 
     const response = await fetchData('getParticipantes', { tutoraName: currentTutoraName }); // Llama a la función específica de tutora
     if (response.status === 'success') {
-        if (response.length > 0) {
-            response.forEach(p => {
+        if (response.data.length > 0) { // Acceder a 'response.data'
+            response.data.forEach(p => {
                 const row = `
                     <tr>
                         <td>${p.codigo || 'N/A'}</td>
-                        <td>${p.participante}</td>
+                        <td>${p.nombre}</td>
                         <td>${p.ciudadania}</td>
                         <td>${p.ultimoMesPago ? new Date(p.ultimoMesPago).toLocaleDateString('es-ES', { month: 'long', year: 'numeric' }) : 'Nunca'}</td>
                         <td>${p.mesesEnDeuda}</td>
                         <td>$${p.totalAPagarEstarAlDia.toFixed(2)}</td>
                         <td>
-                            <button class="view-payment-status" data-id="${p.id}" data-name="${p.participante}">Ver</button>
+                            <button class="view-payment-status" data-id="${p.id}" data-name="${p.nombre}">Ver</button>
                         </td>
                         <td>
                             <button class="share-participant-url" data-id="${p.id}">Compartir URL</button>
@@ -479,8 +493,13 @@ async function showPaymentStatusModal(participantId, participantName) {
 
     const response = await fetchData('getPublicParticipantData', { id: participantId });
     if (response.status === 'success' && response.data) {
+        const participantInfo = response.data.participantInfo;
         const paymentStatus = response.data.paymentStatus;
+
+        document.getElementById('modal-participant-name').textContent = participantInfo.nombre; // Actualizar el nombre en el modal
+        
         let gridHtml = `
+            <h3>Historial de Pagos</h3>
             <div class="payment-grid">
                 <div class="payment-grid-header">Año</div>
                 <div class="payment-grid-header">Ene</div>
@@ -497,7 +516,11 @@ async function showPaymentStatusModal(participantId, participantName) {
                 <div class="payment-grid-header">Dic</div>
         `;
 
-        for (let year = 2022; year <= 2025; year++) {
+        // Generar años desde 2022 hasta el año actual o 2027 (según tu lógica de aportes)
+        const currentYear = new Date().getFullYear();
+        const maxYear = 2027; // O Math.max(currentYear, 2025) si 2025 era un tope fijo
+
+        for (let year = 2022; year <= maxYear; year++) {
             gridHtml += `<div class="payment-grid-item font-bold">${year}</div>`;
             const months = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
             months.forEach(month => {
@@ -533,8 +556,8 @@ async function loadParticipantesCrudTable() {
 
     const response = await fetchData('getParticipantes');
     if (response.status === 'success') {
-        if (response.length > 0) {
-            response.forEach(p => {
+        if (response.data.length > 0) { // Acceder a 'response.data'
+            response.data.forEach(p => {
                 const row = `
                     <tr>
                         <td>${p.codigo || 'N/A'}</td>
@@ -605,7 +628,7 @@ document.getElementById('save-participante-button').addEventListener('click', as
 function editParticipante(id) {
     const participantesTableBody = document.getElementById('participantes-crud-table-body');
     const rows = Array.from(participantesTableBody.children);
-    const rowToEdit = rows.find(row => {
+    const rowToEdit = Array.from(rows).find(row => {
         const editButton = row.querySelector('.edit-participante');
         return editButton && editButton.dataset.id === id;
     });
@@ -709,7 +732,10 @@ window.addEventListener('DOMContentLoaded', async () => {
                     <div class="payment-grid-header">Dic</div>
             `;
 
-            for (let year = 2022; year <= 2025; year++) {
+            const currentYear = new Date().getFullYear();
+            const maxYear = 2027; // Tu lógica de años de aporte
+
+            for (let year = 2022; year <= maxYear; year++) {
                 gridHtml += `<div class="payment-grid-item font-bold">${year}</div>`;
                 const months = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
                 months.forEach(month => {
