@@ -1,24 +1,60 @@
 const APPS_SCRIPT_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwpDK1BbSBCnx-3q8qaSdeS4DG0IEadNEty1sUARIbR1w1ZWWvfGbpaMq1tghHaB9Kk/exec'; // ¡URL CONFIGURADA!
 
-// Elementos del DOM
-const loginModule = document.getElementById('login-module');
-const mainApp = document.getElementById('main-app');
-const loginButton = document.getElementById('login-button');
-const logoutButton = document.getElementById('logout-button');
-const loginMessage = document.getElementById('login-message');
-const usernameInput = document.getElementById('username');
-const passwordInput = document.getElementById('password');
+// DECLARACIÓN DE VARIABLES PARA ELEMENTOS DEL DOM (Inicialmente nulas o sin asignar)
+// Serán asignadas DENTRO de DOMContentLoaded para asegurar que existan.
+let loginModule;
+let mainApp;
+let loginButton;
+let logoutButton;
+let loginMessage;
+let usernameInput;
+let passwordInput;
 
-const dashboardNav = document.getElementById('dashboard-nav');
-const aportesNav = document.getElementById('aportes-nav');
-const participantesCrudNav = document.getElementById('participantes-crud-nav');
+let dashboardNav;
+let aportesNav;
+let participantesCrudNav;
 
-const dashboardModule = document.getElementById('dashboard-module');
-const aportesParticipantesModule = document.getElementById('aportes-participantes-module');
-const participantesCrudModule = document.getElementById('participantes-crud-module');
+let dashboardModule;
+let aportesParticipantesModule;
+let participantesCrudModule;
 
 let currentUserRole = '';
 let currentTutoraName = '';
+
+// Elementos para el módulo de Aportes/Participantes
+let filterMonthSelect;
+let filterTutoraSelect;
+let searchAportesInput;
+let newAporteParticipantSelect;
+let newAporteParticipantCode;
+let newAporteParticipantCitizenship;
+let newAporteLastPaidMonth;
+let newAporteMesesPendientes;
+let newAporteTotalPendiente;
+let newAporteTutora;
+let newAporteMontoInput;
+let newAporteMesesInput;
+let saveAporteButton;
+let newAporteMessage;
+
+// Elementos para el módulo CRUD de Participantes
+let crudParticipanteList;
+let addParticipanteButton;
+let participanteForm;
+let newParticipanteIdInput;
+let newParticipanteCodeInput;
+let newParticipanteNameInput;
+let newParticipanteCitizenshipInput;
+let newParticipanteTutoraSelect;
+let saveParticipanteButton;
+let cancelEditButton;
+let crudMessage;
+
+let currentEditingParticipantId = null; // Para saber si estamos editando o creando
+
+// Variables globales para datos
+let allAportes = [];
+let allParticipants = [];
 
 // --- Funciones de Utilidad ---
 function showModule(module) {
@@ -309,8 +345,6 @@ async function loadAportesParticipantesData() {
     }
 }
 
-let allAportes = []; // Variable para guardar todos los aportes cargados
-let allParticipants = []; // Variable global para todos los participantes
 
 function displayAportes(aportesToDisplay) {
     allAportes = aportesToDisplay; // Guardar la lista completa de aportes
@@ -350,10 +384,6 @@ function addAporteEventListeners() {
 }
 
 // Filtros y Buscador
-const filterMonthSelect = document.getElementById('filter-month');
-const filterTutoraSelect = document.getElementById('filter-tutora');
-const searchAportesInput = document.getElementById('search-aportes');
-
 function applyAportesFilters() {
     const selectedMonth = filterMonthSelect.value;
     const selectedTutora = filterTutoraSelect.value;
@@ -370,9 +400,6 @@ function applyAportesFilters() {
     displayAportes(filteredAportes);
 }
 
-filterMonthSelect.addEventListener('change', applyAportesFilters);
-filterTutoraSelect.addEventListener('change', applyAportesFilters);
-searchAportesInput.addEventListener('input', applyAportesFilters);
 
 function populateTutoraFilter(tutoras) {
     filterTutoraSelect.innerHTML = '<option value="">Todas las Tutoras</option>';
@@ -386,19 +413,6 @@ function populateTutoraFilter(tutoras) {
 
 
 // --- Registrar Nuevo Ingreso (Formulario) ---
-const newAporteParticipantSelect = document.getElementById('new-aporte-participant-select');
-const newAporteParticipantCode = document.getElementById('new-aporte-participant-code');
-const newAporteParticipantCitizenship = document.getElementById('new-aporte-participant-citizenship');
-const newAporteLastPaidMonth = document.getElementById('new-aporte-last-paid-month');
-const newAporteMesesPendientes = document.getElementById('new-aporte-meses-pendientes');
-const newAporteTotalPendiente = document.getElementById('new-aporte-total-pendiente');
-const newAporteTutora = document.getElementById('new-aporte-tutora');
-const newAporteMontoInput = document.getElementById('new-aporte-monto');
-const newAporteMesesInput = document.getElementById('new-aporte-meses');
-const saveAporteButton = document.getElementById('save-aporte-button');
-const newAporteMessage = document.getElementById('new-aporte-message');
-
-
 function populateParticipantSelect(participants) {
     newAporteParticipantSelect.innerHTML = '<option value="">-- Seleccione un Participante --</option>';
     participants.forEach(p => {
@@ -409,51 +423,8 @@ function populateParticipantSelect(participants) {
     });
 }
 
-newAporteParticipantSelect.addEventListener('change', async () => {
-    const participantId = newAporteParticipantSelect.value;
-    if (participantId) {
-        try {
-            const data = await fetchData('getParticipantDetailsForAporte', { participantId: participantId });
-            if (data.status === 'success' && data.participant) {
-                const p = data.participant;
-                newAporteParticipantCode.textContent = p.Código;
-                newAporteParticipantCitizenship.textContent = p.Ciudadanía;
-                newAporteLastPaidMonth.textContent = p.UltimoMesPago || 'N/A';
-                newAporteMesesPendientes.textContent = p.MesesEnDeuda; // Ya calculado en Apps Script
-                newAporteTotalPendiente.textContent = `$${parseFloat(p.TotalAPagar).toLocaleString('es-CO')}`; // Ya calculado en Apps Script
-                newAporteTutora.textContent = p.Tutora;
-
-                // Generar opciones para meses a pagar
-                const mesesPendientesArray = p.MesesDisponiblesParaPago || [];
-                newAporteMesesInput.innerHTML = ''; // Limpiar opciones anteriores
-                mesesPendientesArray.forEach(mes => {
-                    const option = document.createElement('option');
-                    option.value = mes;
-                    option.textContent = mes;
-                    newAporteMesesInput.appendChild(option);
-                });
-
-                // Establecer el monto sugerido basado en el mes actual y la configuración
-                newAporteMontoInput.value = parseFloat(data.currentAporteValue || 0).toFixed(2);
-                updateMontoTotal(); // Actualizar el monto total si hay meses seleccionados por defecto
-
-            } else {
-                newAporteMessage.textContent = 'Error: Participante no encontrado.';
-                clearNewAporteForm();
-            }
-        } catch (error) {
-            console.error('Error al cargar detalles del participante para aporte:', error);
-            newAporteMessage.textContent = 'Error al obtener detalles del participante.';
-            clearNewAporteForm();
-        }
-    } else {
-        clearNewAporteForm();
-    }
-});
 
 // Calcula el monto total a pagar según los meses seleccionados
-newAporteMesesInput.addEventListener('change', updateMontoTotal);
-
 async function updateMontoTotal() {
     const selectedMonths = Array.from(newAporteMesesInput.selectedOptions).map(option => option.value);
     const participantId = newAporteParticipantSelect.value;
@@ -483,48 +454,6 @@ async function updateMontoTotal() {
 }
 
 
-saveAporteButton.addEventListener('click', async () => {
-    const participantId = newAporteParticipantSelect.value;
-    const monto = parseFloat(newAporteMontoInput.value);
-    const mesesSeleccionados = Array.from(newAporteMesesInput.selectedOptions).map(option => option.value);
-    const tutoraName = newAporteTutora.textContent; // Obtener el nombre de la tutora del campo de detalle
-
-    if (!participantId || isNaN(monto) || monto <= 0 || mesesSeleccionados.length === 0 || !tutoraName) {
-        newAporteMessage.textContent = 'Por favor, complete todos los campos requeridos (participante, monto, meses, tutora).';
-        newAporteMessage.classList.add('error');
-        return;
-    }
-
-    newAporteMessage.textContent = 'Registrando aporte...';
-    newAporteMessage.classList.remove('error');
-    newAporteMessage.classList.remove('success');
-
-    try {
-        const data = await fetchData('registerAporte', null, 'POST', {
-            participantId,
-            monto,
-            meses: mesesSeleccionados, // Enviar como array
-            tutoraName // Añadir tutoraName aquí
-        });
-
-        if (data.status === 'success') {
-            newAporteMessage.textContent = 'Aporte registrado con éxito!';
-            newAporteMessage.classList.add('success');
-            clearNewAporteForm();
-            loadAportesParticipantesData(); // Recargar datos para actualizar la tabla
-            loadDashboardData(); // Actualizar dashboard también
-            setTimeout(() => newAporteMessage.textContent = '', 3000); // Limpiar mensaje después de 3s
-        } else {
-            newAporteMessage.textContent = data.message || 'Error al registrar el aporte.';
-            newAporteMessage.classList.add('error');
-        }
-    } catch (error) {
-        console.error('Error al registrar aporte:', error);
-        newAporteMessage.textContent = 'Error al conectar con el servidor para registrar el aporte.';
-        newAporteMessage.classList.add('error');
-    }
-});
-
 function clearNewAporteForm() {
     newAporteParticipantSelect.value = '';
     newAporteParticipantCode.textContent = '';
@@ -540,20 +469,6 @@ function clearNewAporteForm() {
 
 
 // --- Funciones de Gestión de Participantes (CRUD) ---
-const crudParticipanteList = document.getElementById('crud-participante-list');
-const addParticipanteButton = document.getElementById('add-participante-button');
-const participanteForm = document.getElementById('participante-form');
-const newParticipanteIdInput = document.getElementById('new-participante-id');
-const newParticipanteCodeInput = document.getElementById('new-participante-code');
-const newParticipanteNameInput = document.getElementById('new-participante-name');
-const newParticipanteCitizenshipInput = document.getElementById('new-ciudadania');
-const newParticipanteTutoraSelect = document.getElementById('new-tutora');
-const saveParticipanteButton = document.getElementById('save-participante-button');
-const cancelEditButton = document.getElementById('cancel-edit-button');
-const crudMessage = document.getElementById('crud-message');
-
-let currentEditingParticipantId = null; // Para saber si estamos editando o creando
-
 async function loadParticipantesCrudData() {
     try {
         const data = await fetchData('getAllParticipants');
@@ -615,20 +530,6 @@ function populateCrudTutoraSelect(tutoras) {
     });
 }
 
-addParticipanteButton.addEventListener('click', () => {
-    currentEditingParticipantId = null;
-    clearParticipanteForm();
-    participanteForm.classList.remove('hidden');
-    saveParticipanteButton.textContent = 'Guardar Participante';
-    cancelEditButton.classList.add('hidden'); // Ocultar si es nuevo
-});
-
-cancelEditButton.addEventListener('click', () => {
-    participanteForm.classList.add('hidden');
-    clearParticipanteForm();
-    crudMessage.textContent = '';
-});
-
 
 async function openEditParticipanteForm(id) {
     currentEditingParticipantId = id;
@@ -656,53 +557,6 @@ async function openEditParticipanteForm(id) {
     }
 }
 
-saveParticipanteButton.addEventListener('click', async () => {
-    const id = newParticipanteIdInput.value.trim();
-    const codigo = newParticipanteCodeInput.value.trim();
-    const nombre = newParticipanteNameInput.value.trim();
-    const ciudadania = newParticipanteCitizenshipInput.value.trim();
-    const tutora = newParticipanteTutoraSelect.value;
-
-    if (!codigo || !nombre || !ciudadania || !tutora) {
-        crudMessage.textContent = 'Todos los campos son obligatorios.';
-        crudMessage.classList.add('error');
-        return;
-    }
-
-    crudMessage.textContent = 'Guardando participante...';
-    crudMessage.classList.remove('error');
-    crudMessage.classList.remove('success');
-
-    let action = currentEditingParticipantId ? 'updateParticipant' : 'addParticipant';
-    let body = {
-        id: currentEditingParticipantId, // Solo relevante para update
-        codigo,
-        nombre,
-        ciudadania,
-        tutora
-    };
-
-    try {
-        const data = await fetchData(action, null, 'POST', body);
-
-        if (data.status === 'success') {
-            crudMessage.textContent = data.message || 'Participante guardado con éxito!';
-            crudMessage.classList.add('success');
-            participanteForm.classList.add('hidden');
-            clearParticipanteForm();
-            loadParticipantesCrudData(); // Recargar la tabla
-            loadAportesParticipantesData(); // Recargar select de participantes en aportes
-            setTimeout(() => crudMessage.textContent = '', 3000);
-        } else {
-            crudMessage.textContent = data.message || 'Error al guardar el participante.';
-            crudMessage.classList.add('error');
-        }
-    } catch (error) {
-        console.error('Error al guardar participante:', error);
-        crudMessage.textContent = 'Error al conectar con el servidor para guardar el participante.';
-        crudMessage.classList.add('error');
-    }
-});
 
 async function deleteParticipante(id) {
     if (!confirm('¿Está seguro de que desea eliminar este participante? Esto también eliminará sus aportes.')) {
@@ -768,110 +622,242 @@ async function getAporteValueFrontend() {
 }
 
 
-// --- Lógica de Inicialización ---
-loginButton.addEventListener('click', handleLoginFrontend);
-logoutButton.addEventListener('click', handleLogoutFrontend);
-
-// Navegación
-dashboardNav.addEventListener('click', () => {
-    showModule(dashboardModule);
-    dashboardNav.classList.add('active');
-    aportesNav.classList.remove('active');
-    participantesCrudNav.classList.remove('active');
-    loadDashboardData(); // Cargar datos cuando se muestra el dashboard
-});
-
-aportesNav.addEventListener('click', () => {
-    showModule(aportesParticipantesModule);
-    aportesNav.classList.add('active');
-    dashboardNav.classList.remove('active');
-    participantesCrudNav.classList.remove('active');
-    loadAportesParticipantesData(); // Cargar datos cuando se muestra el módulo
-});
-
-participantesCrudNav.addEventListener('click', () => {
-    showModule(participantesCrudModule);
-    participantesCrudNav.classList.add('active');
-    dashboardNav.classList.remove('active');
-    aportesNav.classList.remove('active');
-    loadParticipantesCrudData(); // Cargar datos cuando se muestra el módulo
-});
-
-
-// Manejo de URL pública para participantes
-async function loadPublicParticipantData(participantId) {
-    try {
-        const data = await fetchData('getPublicParticipantData', { id: participantId });
-        if (data.status === 'success' && data.participant) {
-            const p = data.participant;
-            document.getElementById('public-participant-name').textContent = p.Nombre;
-            document.getElementById('public-participant-code').textContent = p.Código;
-            document.getElementById('public-participant-citizenship').textContent = p.Ciudadanía;
-            document.getElementById('public-last-paid-month').textContent = p.UltimoMesPago || 'N/A';
-            document.getElementById('public-months-in-debt').textContent = p.MesesEnDeuda;
-            document.getElementById('public-total-to-pay').textContent = `$${parseFloat(p.TotalAPagar).toLocaleString('es-CO')}`;
-            document.getElementById('public-tutora-name').textContent = p.Tutora;
-
-            // Renderizar la tabla de estado de pagos
-            const paymentStatus = data.paymentStatus || {}; // Asegurarse de tener un objeto
-            let gridHtml = `
-                <div class="payment-grid">
-                    <div class="payment-grid-header empty-cell"></div>
-                    <div class="payment-grid-header">Ene</div>
-                    <div class="payment-grid-header">Feb</div>
-                    <div class="payment-grid-header">Mar</div>
-                    <div class="payment-grid-header">Abr</div>
-                    <div class="payment-grid-header">May</div>
-                    <div class="payment-grid-header">Jun</div>
-                    <div class="payment-grid-header">Jul</div>
-                    <div class="payment-grid-header">Ago</div>
-                    <div class="payment-grid-header">Sep</div>
-                    <div class="payment-grid-header">Oct</div>
-                    <div class="payment-grid-header">Nov</div>
-                    <div class="payment-grid-header">Dic</div>
-            `;
-
-            const currentYear = new Date().getFullYear();
-            const maxYear = 2027; // Tu lógica de años de aporte
-
-            for (let year = 2022; year <= maxYear; year++) {
-                gridHtml += `<div class="payment-grid-item font-bold">${year}</div>`;
-                const months = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
-                months.forEach(month => {
-                    const status = paymentStatus[year] && paymentStatus[year][month] ? paymentStatus[year][month] : '✗';
-                    const statusClass = status === '✓' ? 'paid' : 'unpaid';
-                    gridHtml += `<div class="payment-grid-item ${statusClass}">${status}</div>`;
-                });
-            }
-            gridHtml += `</div>`;
-            document.getElementById('public-payment-status-grid-container').innerHTML = gridHtml;
-
-        } else {
-            document.getElementById('public-participant-details').innerHTML = `<p class="message error">Error al cargar la información del participante o participante no encontrado.</p>`;
-            document.getElementById('public-payment-status-grid-container').innerHTML = '';
-        }
-    } catch (error) {
-        console.error('Error al cargar datos del participante público:', error);
-        document.getElementById('public-participant-details').innerHTML = `<p class="message error">Error al conectar con el servidor para cargar los datos del participante.</p>`;
-        document.getElementById('public-payment-status-grid-container').innerHTML = '';
-    }
-}
-
-
-// Lógica de carga inicial de la aplicación
+// --- Lógica de Inicialización (se ejecuta cuando el DOM está completamente cargado) ---
 document.addEventListener('DOMContentLoaded', () => {
-    // Manejo de URLs públicas de participantes
+    // 1. Asignar elementos DOM (¡AHORA ES SEGURO HACERLO!)
+    loginModule = document.getElementById('login-module');
+    mainApp = document.getElementById('main-app');
+    loginButton = document.getElementById('login-button');
+    logoutButton = document.getElementById('logout-button');
+    loginMessage = document.getElementById('login-message');
+    usernameInput = document.getElementById('username');
+    passwordInput = document.getElementById('password');
+
+    dashboardNav = document.getElementById('dashboard-nav');
+    aportesNav = document.getElementById('aportes-nav');
+    participantesCrudNav = document.getElementById('participantes-crud-nav');
+
+    dashboardModule = document.getElementById('dashboard-module');
+    aportesParticipantesModule = document.getElementById('aportes-participantes-module');
+    participantesCrudModule = document.getElementById('participantes-crud-module');
+
+    // Elementos del módulo de Aportes/Participantes
+    filterMonthSelect = document.getElementById('filter-month');
+    filterTutoraSelect = document.getElementById('filter-tutora');
+    searchAportesInput = document.getElementById('search-aportes');
+    newAporteParticipantSelect = document.getElementById('new-aporte-participant-select');
+    newAporteParticipantCode = document.getElementById('new-aporte-participant-code');
+    newAporteParticipantCitizenship = document.getElementById('new-aporte-participant-citizenship');
+    newAporteLastPaidMonth = document.getElementById('new-aporte-last-paid-month');
+    newAporteMesesPendientes = document.getElementById('new-aporte-meses-pendientes');
+    newAporteTotalPendiente = document.getElementById('new-aporte-total-pendiente');
+    newAporteTutora = document.getElementById('new-aporte-tutora');
+    newAporteMontoInput = document.getElementById('new-aporte-monto');
+    newAporteMesesInput = document.getElementById('new-aporte-meses');
+    saveAporteButton = document.getElementById('save-aporte-button');
+    newAporteMessage = document.getElementById('new-aporte-message');
+
+    // Elementos del módulo CRUD de Participantes
+    crudParticipanteList = document.getElementById('crud-participante-list');
+    addParticipanteButton = document.getElementById('add-participante-button');
+    participanteForm = document.getElementById('participante-form');
+    newParticipanteIdInput = document.getElementById('new-participante-id');
+    newParticipanteCodeInput = document.getElementById('new-participante-code');
+    newParticipanteNameInput = document.getElementById('new-participante-name');
+    newParticipanteCitizenshipInput = document.getElementById('new-ciudadania');
+    newParticipanteTutoraSelect = document.getElementById('new-tutora');
+    saveParticipanteButton = document.getElementById('save-participante-button');
+    cancelEditButton = document.getElementById('cancel-edit-button');
+    crudMessage = document.getElementById('crud-message');
+
+
+    // 2. Adjuntar Listeners (¡AHORA ES SEGURO HACERLO!)
+    if (loginButton) loginButton.addEventListener('click', handleLoginFrontend);
+    if (logoutButton) logoutButton.addEventListener('click', handleLogoutFrontend);
+    if (filterMonthSelect) filterMonthSelect.addEventListener('change', applyAportesFilters);
+    if (filterTutoraSelect) filterTutoraSelect.addEventListener('change', applyAportesFilters);
+    if (searchAportesInput) searchAportesInput.addEventListener('input', applyAportesFilters);
+    if (newAporteParticipantSelect) newAporteParticipantSelect.addEventListener('change', async () => {
+        const participantId = newAporteParticipantSelect.value;
+        if (participantId) {
+            try {
+                const data = await fetchData('getParticipantDetailsForAporte', { participantId: participantId });
+                if (data.status === 'success' && data.participant) {
+                    const p = data.participant;
+                    newAporteParticipantCode.textContent = p.Código;
+                    newAporteParticipantCitizenship.textContent = p.Ciudadanía;
+                    newAporteLastPaidMonth.textContent = p.UltimoMesPago || 'N/A';
+                    newAporteMesesPendientes.textContent = p.MesesEnDeuda;
+                    newAporteTotalPendiente.textContent = `$${parseFloat(p.TotalAPagar).toLocaleString('es-CO')}`;
+                    newAporteTutora.textContent = p.Tutora;
+
+                    const mesesPendientesArray = p.MesesDisponiblesParaPago || [];
+                    newAporteMesesInput.innerHTML = '';
+                    mesesPendientesArray.forEach(mes => {
+                        const option = document.createElement('option');
+                        option.value = mes;
+                        option.textContent = mes;
+                        newAporteMesesInput.appendChild(option);
+                    });
+
+                    newAporteMontoInput.value = parseFloat(data.currentAporteValue || 0).toFixed(2);
+                    updateMontoTotal();
+
+                } else {
+                    newAporteMessage.textContent = 'Error: Participante no encontrado.';
+                    clearNewAporteForm();
+                }
+            } catch (error) {
+                console.error('Error al cargar detalles del participante para aporte:', error);
+                newAporteMessage.textContent = 'Error al obtener detalles del participante.';
+                clearNewAporteForm();
+            }
+        } else {
+            clearNewAporteForm();
+        }
+    });
+
+    if (newAporteMesesInput) newAporteMesesInput.addEventListener('change', updateMontoTotal);
+    if (saveAporteButton) saveAporteButton.addEventListener('click', async () => {
+        const participantId = newAporteParticipantSelect.value;
+        const monto = parseFloat(newAporteMontoInput.value);
+        const mesesSeleccionados = Array.from(newAporteMesesInput.selectedOptions).map(option => option.value);
+        const tutoraName = newAporteTutora.textContent;
+
+        if (!participantId || isNaN(monto) || monto <= 0 || mesesSeleccionados.length === 0 || !tutoraName) {
+            newAporteMessage.textContent = 'Por favor, complete todos los campos requeridos (participante, monto, meses, tutora).';
+            newAporteMessage.classList.add('error');
+            return;
+        }
+
+        newAporteMessage.textContent = 'Registrando aporte...';
+        newAporteMessage.classList.remove('error');
+        newAporteMessage.classList.remove('success');
+
+        try {
+            const data = await fetchData('registerAporte', null, 'POST', {
+                participantId,
+                monto,
+                meses: mesesSeleccionados,
+                tutoraName
+            });
+
+            if (data.status === 'success') {
+                newAporteMessage.textContent = 'Aporte registrado con éxito!';
+                newAporteMessage.classList.add('success');
+                clearNewAporteForm();
+                loadAportesParticipantesData();
+                loadDashboardData();
+                setTimeout(() => newAporteMessage.textContent = '', 3000);
+            } else {
+                newAporteMessage.textContent = data.message || 'Error al registrar el aporte.';
+                newAporteMessage.classList.add('error');
+            }
+        } catch (error) {
+            console.error('Error al registrar aporte:', error);
+            newAporteMessage.textContent = 'Error al conectar con el servidor para registrar el aporte.';
+            newAporteMessage.classList.add('error');
+        }
+    });
+
+    if (addParticipanteButton) addParticipanteButton.addEventListener('click', () => {
+        currentEditingParticipantId = null;
+        clearParticipanteForm();
+        participanteForm.classList.remove('hidden');
+        saveParticipanteButton.textContent = 'Guardar Participante';
+        cancelEditButton.classList.add('hidden');
+    });
+
+    if (cancelEditButton) cancelEditButton.addEventListener('click', () => {
+        participanteForm.classList.add('hidden');
+        clearParticipanteForm();
+        crudMessage.textContent = '';
+    });
+
+    if (saveParticipanteButton) saveParticipanteButton.addEventListener('click', async () => {
+        const id = newParticipanteIdInput.value.trim();
+        const codigo = newParticipanteCodeInput.value.trim();
+        const nombre = newParticipanteNameInput.value.trim();
+        const ciudadania = newParticipanteCitizenshipInput.value.trim();
+        const tutora = newParticipanteTutoraSelect.value;
+
+        if (!codigo || !nombre || !ciudadania || !tutora) {
+            crudMessage.textContent = 'Todos los campos son obligatorios.';
+            crudMessage.classList.add('error');
+            return;
+        }
+
+        crudMessage.textContent = 'Guardando participante...';
+        crudMessage.classList.remove('error');
+        crudMessage.classList.remove('success');
+
+        let action = currentEditingParticipantId ? 'updateParticipant' : 'addParticipant';
+        let body = {
+            id: currentEditingParticipantId,
+            codigo,
+            nombre,
+            ciudadania,
+            tutora
+        };
+
+        try {
+            const data = await fetchData(action, null, 'POST', body);
+
+            if (data.status === 'success') {
+                crudMessage.textContent = data.message || 'Participante guardado con éxito!';
+                crudMessage.classList.add('success');
+                participanteForm.classList.add('hidden');
+                clearParticipanteForm();
+                loadParticipantesCrudData();
+                loadAportesParticipantesData();
+                setTimeout(() => crudMessage.textContent = '', 3000);
+            } else {
+                crudMessage.textContent = data.message || 'Error al guardar el participante.';
+                crudMessage.classList.add('error');
+            }
+        } catch (error) {
+            console.error('Error al guardar participante:', error);
+            crudMessage.textContent = 'Error al conectar con el servidor para guardar el participante.';
+            crudMessage.classList.add('error');
+        }
+    });
+
+    // Navegación (Asegúrate de que los botones de navegación también estén adjuntos después de cargarse)
+    if (dashboardNav) dashboardNav.addEventListener('click', () => {
+        showModule(dashboardModule);
+        dashboardNav.classList.add('active');
+        aportesNav.classList.remove('active');
+        participantesCrudNav.classList.remove('active');
+        loadDashboardData();
+    });
+
+    if (aportesNav) aportesNav.addEventListener('click', () => {
+        showModule(aportesParticipantesModule);
+        aportesNav.classList.add('active');
+        dashboardNav.classList.remove('active');
+        participantesCrudNav.classList.remove('active');
+        loadAportesParticipantesData();
+    });
+
+    if (participantesCrudNav) participantesCrudNav.addEventListener('click', () => {
+        showModule(participantesCrudModule);
+        participantesCrudNav.classList.add('active');
+        dashboardNav.classList.remove('active');
+        aportesNav.classList.remove('active');
+        loadParticipantesCrudData();
+    });
+
+
+    // Lógica de carga inicial de la aplicación (dentro de DOMContentLoaded)
     const urlParams = new URLSearchParams(window.location.search);
     const participantId = urlParams.get('pId');
 
     if (participantId) {
-        // Si hay un pId en la URL, mostrar la vista pública
         loginModule.classList.add('hidden');
-        mainApp.classList.remove('hidden'); // Asegúrate de que el contenedor principal esté visible
-        document.getElementById('public-view-container').classList.remove('hidden'); // Muestra el contenedor específico de la vista pública
+        mainApp.classList.remove('hidden');
+        document.getElementById('public-view-container').classList.remove('hidden');
         loadPublicParticipantData(participantId);
     } else {
-        // Si no es una URL pública de participante, proceder con el flujo de login normal
         const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
         if (isLoggedIn) {
             currentUserRole = localStorage.getItem('currentUserRole');
@@ -879,16 +865,15 @@ document.addEventListener('DOMContentLoaded', () => {
             loginModule.classList.add('hidden');
             mainApp.classList.remove('hidden');
             updateNavigationVisibility();
-            getAporteValueFrontend(); // Obtener valor del aporte al cargar la app si ya está logueado
-            // Mostrar módulo por defecto al recargar
+            getAporteValueFrontend();
             if (currentUserRole === 'admin' || currentUserRole === 'directora' || currentUserRole === 'asegurador') {
                 showModule(dashboardModule);
                 dashboardNav.classList.add('active');
-                loadDashboardData(); // Cargar dashboard al inicio si es admin
+                loadDashboardData();
             } else {
                 showModule(aportesParticipantesModule);
                 aportesNav.classList.add('active');
-                loadAportesParticipantesData(); // Cargar aportes/participantes si es tutora
+                loadAportesParticipantesData();
             }
         } else {
             loginModule.classList.remove('hidden');
