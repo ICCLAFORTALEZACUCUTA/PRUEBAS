@@ -3,44 +3,47 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema de Aportes ONG</title>
+    <title>Gestión de Aportes | ONG Solidaridad</title>
+    <meta name="description" content="Sistema de gestión de aportes y participantes para ONG Solidaridad.">
     <link href="./style.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
     <div id="app" class="container">
-        <div id="login-module" class="login-container">
-            <h2>Iniciar Sesión</h2>
-            <div class="form-group">
-                <label for="username">Usuario:</label>
-                <input type="text" id="username" placeholder="Tu usuario">
-            </div>
-            <div class="form-group">
-                <label for="password">Contraseña:</label>
-                <input type="password" id="password" placeholder="Tu contraseña">
-            </div>
-            <button id="login-button">Ingresar</button>
-            <p id="login-message" class="message error"></p>
-        </div>
+        <section id="login-module" class="login-container" aria-labelledby="login-heading">
+            <h2 id="login-heading">Iniciar Sesión</h2>
+            <form id="login-form">
+                <div class="form-group">
+                    <label for="username">Usuario:</label>
+                    <input type="text" id="username" placeholder="Tu usuario" required aria-required="true">
+                </div>
+                <div class="form-group">
+                    <label for="password">Contraseña:</label>
+                    <input type="password" id="password" placeholder="Tu contraseña" required aria-required="true">
+                </div>
+                <button type="submit" id="login-button">Ingresar</button>
+                <p id="login-message" class="message error" role="alert" aria-live="polite"></p>
+            </form>
+        </section>
 
         <div id="main-app" class="hidden">
-            <header>
+            <header role="banner">
                 <h1>Sistema de Aportes ONG</h1>
-                <nav>
-                    <button id="dashboard-nav" class="nav-button admin-only">Dashboard</button>
-                    <button id="aportes-nav" class="nav-button">Aportes / Participantes</button>
-                    <button id="participantes-crud-nav" class="nav-button admin-only">Gestionar Participantes</button>
+                <nav role="navigation" aria-label="Navegación Principal">
+                    <button id="dashboard-nav" class="nav-button admin-only" aria-controls="dashboard-module">Dashboard</button>
+                    <button id="aportes-nav" class="nav-button" aria-controls="aportes-participantes-module">Aportes / Participantes</button>
+                    <button id="participantes-crud-nav" class="nav-button admin-only" aria-controls="participantes-crud-module">Gestionar Participantes</button>
                     <button id="logout-button" class="nav-button logout">Cerrar Sesión</button>
                 </nav>
             </header>
 
-            <main>
-                <section id="dashboard-module" class="hidden admin-only">
-                    <h2>Dashboard</h2>
+            <main role="main">
+                <section id="dashboard-module" class="hidden admin-only" aria-labelledby="dashboard-title">
+                    <h2 id="dashboard-title">Dashboard</h2>
                     <div class="dashboard-grid">
                         <div class="card">
                             <h3>Aportes Totales por Mes y Año</h3>
-                            <canvas id="total-aportes-chart"></canvas>
+                            <canvas id="total-aportes-chart" role="img" aria-label="Gráfico de aportes totales por mes y año"></canvas>
                             <p class="description">Gráfico de barras/líneas de aportes mensuales.</p>
                         </div>
                         <div class="card">
@@ -50,64 +53,65 @@
                         </div>
                         <div class="card">
                             <h3>Últimos 10 Aportes Recibidos</h3>
-                            <ul id="ultimos-aportes-list">
+                            <ul id="ultimos-aportes-list" aria-live="polite">
                                 </ul>
                             <p class="description">Visibilidad de las transacciones más recientes.</p>
                         </div>
                     </div>
                 </section>
 
-                <section id="aportes-participantes-module" class="hidden">
-                    <h2>Aportes y Participantes</h2>
+                <section id="aportes-participantes-module" class="hidden" aria-labelledby="aportes-title">
+                    <h2 id="aportes-title">Aportes y Participantes</h2>
 
                     <div class="filter-section">
                         <div class="form-group">
                             <label for="filter-month">Filtrar por Mes:</label>
-                            <input type="month" id="filter-month">
+                            <input type="month" id="filter-month" aria-label="Filtrar por mes">
                         </div>
                         <div class="form-group admin-only">
                             <label for="filter-tutora">Filtrar por Tutora:</label>
-                            <select id="filter-tutora">
+                            <select id="filter-tutora" aria-label="Filtrar por tutora">
                                 <option value="">Todas</option>
                                 </select>
                         </div>
                         <div class="form-group">
                             <label for="search-input">Buscar por Nombre o Código:</label>
-                            <input type="text" id="search-input" placeholder="Nombre o Código">
+                            <input type="text" id="search-input" placeholder="Nombre o Código" aria-label="Buscar por nombre o código">
                         </div>
                         <button id="apply-filters-button">Aplicar Filtros</button>
                     </div>
 
                     <div class="section-card">
                         <h3>Lista de Aportes Realizados</h3>
-                        <table class="data-table">
-                            <thead>
-                                <tr>
-                                    <th>Fecha</th>
-                                    <th>Participante</th>
-                                    <th class="admin-only">Tutora</th>
-                                    <th>Monto Total</th>
-                                    <th>Meses Pagados</th>
-                                    <th>Abono</th>
-                                    <th>Acciones</th>
-                                </tr>
-                            </thead>
-                            <tbody id="aportes-table-body">
-                                </tbody>
-                        </table>
-                        <p id="no-aportes-message" class="message info hidden">No se encontraron aportes.</p>
+                        <div class="table-responsive"> <table class="data-table" role="table" aria-label="Lista de aportes realizados">
+                                <thead>
+                                    <tr>
+                                        <th scope="col">Fecha</th>
+                                        <th scope="col">Participante</th>
+                                        <th scope="col" class="admin-only">Tutora</th>
+                                        <th scope="col">Monto Total</th>
+                                        <th scope="col">Meses Pagados</th>
+                                        <th scope="col">Abono</th>
+                                        <th scope="col">Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="aportes-table-body">
+                                    </tbody>
+                            </table>
+                        </div>
+                        <p id="no-aportes-message" class="message info hidden" role="status" aria-live="polite">No se encontraron aportes.</p>
                     </div>
 
                     <div class="section-card">
                         <h3>Registrar Nuevo Ingreso</h3>
                         <div class="form-group">
                             <label for="select-participante">Seleccionar Participante:</label>
-                            <select id="select-participante">
+                            <select id="select-participante" aria-label="Seleccionar un participante para registrar ingreso">
                                 <option value="">-- Seleccione un participante --</option>
                                 </select>
                         </div>
 
-                        <div id="participante-info" class="participant-details-grid hidden">
+                        <div id="participante-info" class="participant-details-grid hidden" aria-live="polite">
                             <div><strong>Código:</strong> <span id="info-codigo"></span></div>
                             <div><strong>Nombre:</strong> <span id="info-nombre"></span></div>
                             <div><strong>Ciudadanía:</strong> <span id="info-ciudadania"></span></div>
@@ -119,52 +123,54 @@
 
                         <div id="payment-section" class="hidden">
                             <h4>Meses a Pagar</h4>
-                            <div id="meses-a-pagar-checkboxes" class="checkbox-grid">
+                            <div id="meses-a-pagar-checkboxes" class="checkbox-grid" role="group" aria-labelledby="meses-pagar-heading">
                                 </div>
+                            <small id="meses-pagar-heading" class="description">Seleccione los meses que desea registrar como pagados.</small>
 
                             <div class="form-group">
                                 <label for="monto-abono">Monto de Abono (opcional):</label>
-                                <input type="number" id="monto-abono" value="0">
+                                <input type="number" id="monto-abono" value="0" min="0" step="0.01" aria-label="Monto de abono opcional">
                             </div>
 
                             <div class="form-group">
                                 <label for="monto-total-a-cobrar">Monto Total a Cobrar al Padre:</label>
-                                <input type="text" id="monto-total-a-cobrar" readonly>
+                                <input type="text" id="monto-total-a-cobrar" readonly aria-readonly="true" aria-label="Monto total a cobrar">
                             </div>
 
                             <div class="form-group">
                                 <label for="monto-recibido">Monto Recibido del Padre:</label>
-                                <input type="number" id="monto-recibido" placeholder="Monto total recibido">
+                                <input type="number" id="monto-recibido" placeholder="Monto total recibido" min="0" step="0.01" required aria-required="true" aria-label="Monto recibido del padre">
                             </div>
 
                             <button id="registrar-aporte-button">Registrar Aporte</button>
-                            <p id="registro-message" class="message"></p>
+                            <p id="registro-message" class="message" role="status" aria-live="polite"></p>
                         </div>
+
                         <div id="tutora-payment-view" class="hidden">
                             <h3>Información de Pagos (Vista Tutora)</h3>
-                            <div id="tutora-payment-table-container">
-                                <table class="data-table">
+                            <div id="tutora-payment-table-container" class="table-responsive">
+                                <table class="data-table" role="table" aria-label="Tabla de información de pagos para tutora">
                                     <thead>
                                         <tr>
-                                            <th>Código</th>
-                                            <th>Participante</th>
-                                            <th>Ciudadanía</th>
-                                            <th>Último Mes Pago</th>
-                                            <th>Meses en Deuda</th>
-                                            <th>Total a Pagar (al día)</th>
-                                            <th>Ver Estado</th>
-                                            <th>Compartir URL</th>
+                                            <th scope="col">Código</th>
+                                            <th scope="col">Participante</th>
+                                            <th scope="col">Ciudadanía</th>
+                                            <th scope="col">Último Mes Pago</th>
+                                            <th scope="col">Meses en Deuda</th>
+                                            <th scope="col">Total a Pagar (al día)</th>
+                                            <th scope="col">Ver Estado</th>
+                                            <th scope="col">Compartir URL</th>
                                         </tr>
                                     </thead>
                                     <tbody id="tutora-participantes-table-body">
                                         </tbody>
                                 </table>
                             </div>
-                            <div id="payment-status-modal" class="modal hidden">
+                            <div id="payment-status-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="modal-participant-name">
                                 <div class="modal-content">
                                     <div class="modal-header">
-                                        <h3>Estado de Pagos de <span id="modal-participant-name"></span></h3>
-                                        <button class="close-button" onclick="document.getElementById('payment-status-modal').classList.add('hidden')">&times;</button>
+                                        <h3 id="modal-participant-name">Estado de Pagos de <span></span></h3>
+                                        <button class="close-button" onclick="document.getElementById('payment-status-modal').classList.add('hidden')" aria-label="Cerrar ventana modal">&times;</button>
                                     </div>
                                     <div id="payment-status-grid-container" class="scrollable-content">
                                         </div>
@@ -174,24 +180,26 @@
                     </div>
                 </section>
 
-                <section id="participantes-crud-module" class="hidden admin-only">
-                    <h2>Gestionar Participantes</h2>
+                <section id="participantes-crud-module" class="hidden admin-only" aria-labelledby="crud-title">
+                    <h2 id="crud-title">Gestionar Participantes</h2>
 
                     <div class="section-card">
                         <h3>Lista de Participantes</h3>
-                        <table class="data-table">
-                            <thead>
-                                <tr>
-                                    <th>Código</th>
-                                    <th>Nombre</th>
-                                    <th>Ciudadanía</th>
-                                    <th>Tutora</th>
-                                    <th>Acciones</th>
-                                </tr>
-                            </thead>
-                            <tbody id="participantes-crud-table-body">
-                                </tbody>
-                        </table>
+                        <div class="table-responsive">
+                            <table class="data-table" role="table" aria-label="Lista de participantes registrados">
+                                <thead>
+                                    <tr>
+                                        <th scope="col">Código</th>
+                                        <th scope="col">Nombre</th>
+                                        <th scope="col">Ciudadanía</th>
+                                        <th scope="col">Tutora</th>
+                                        <th scope="col">Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="participantes-crud-table-body">
+                                    </tbody>
+                            </table>
+                        </div>
                     </div>
 
                     <div class="section-card">
@@ -200,21 +208,21 @@
                         <div class="form-grid">
                             <div class="form-group">
                                 <label for="new-codigo">Código:</label>
-                                <input type="text" id="new-codigo">
+                                <input type="text" id="new-codigo" required aria-required="true" placeholder="Ej: P001">
                             </div>
                             <div class="form-group">
                                 <label for="new-nombre">Nombre:</label>
-                                <input type="text" id="new-nombre">
+                                <input type="text" id="new-nombre" required aria-required="true" placeholder="Nombre completo del participante">
                             </div>
                         </div>
                         <div class="form-grid">
                             <div class="form-group">
                                 <label for="new-ciudadania">Ciudadanía:</label>
-                                <input type="text" id="new-ciudadania">
+                                <input type="text" id="new-ciudadania" required aria-required="true" placeholder="Número de identificación">
                             </div>
                             <div class="form-group">
                                 <label for="new-tutora">Tutora:</label>
-                                <select id="new-tutora">
+                                <select id="new-tutora" required aria-required="true" aria-label="Seleccione la tutora asignada">
                                     <option value="">-- Seleccione Tutora --</option>
                                     <option value="lisbeth">Lisbeth</option>
                                     <option value="diana">Diana</option>
@@ -224,10 +232,10 @@
                             </div>
                         </div>
                         <div class="button-group">
-                            <button id="save-participante-button">Guardar Participante</button>
-                            <button id="cancel-edit-button" class="hidden">Cancelar Edición</button>
+                            <button id="save-participante-button" type="submit">Guardar Participante</button>
+                            <button id="cancel-edit-button" class="hidden" type="button">Cancelar Edición</button>
                         </div>
-                        <p id="crud-message" class="message"></p>
+                        <p id="crud-message" class="message" role="status" aria-live="polite"></p>
                     </div>
                 </section>
             </main>
