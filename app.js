@@ -1,4 +1,4 @@
-const APPS_SCRIPT_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwpDK1BbSBCnx-3q8qaSdeS4DG0IEadNEty1sUARIbR1w1ZWWvfGbpaMq1tghHaB9Kk/exec'; // ¡REEMPLAZA ESTO!
+const APPS_SCRIPT_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwpDK1BbSBCnx-3q8qaSdeS4DG0IEadNEty1sUARIbR1w1ZWWvfGbpaMq1tghHaB9Kk/exec'; // ¡REEMPLAZA ESTO CON TU URL DEPLOYADA SI CAMBIA!
 
 // Elementos del DOM
 const loginModule = document.getElementById('login-module');
@@ -19,6 +19,8 @@ const participantesCrudModule = document.getElementById('participantes-crud-modu
 
 let currentUserRole = '';
 let currentTutoraName = '';
+// Variable para almacenar el valor del aporte actual, obtenido del backend
+let currentAporteValue = 0;
 
 // --- Funciones de Utilidad ---
 function showModule(module) {
@@ -65,21 +67,22 @@ async function fetchData(action, params = {}, method = 'GET', body = null) {
     try {
         const response = await fetch(url.toString(), options);
         if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+            // Log the full response status and text for debugging
+            const errorText = await response.text();
+            console.error(`HTTP error! Status: ${response.status}, Text: ${errorText}`);
+            throw new Error(`HTTP error! status: ${response.status} - ${errorText.substring(0, 100)}...`);
         }
         return await response.json();
     } catch (error) {
         console.error('Error fetching data:', error);
-        return { status: 'error', message: `Error al conectar con el servidor: ${error.message}` };
+        return { status: 'error', message: `Error al conectar con el servidor o error de red: ${error.message}` };
     }
 }
 
 // --- Autenticación ---
 loginButton.addEventListener('click', async () => {
-    // username y password se obtienen directamente de los inputs dentro de fetchData
     loginMessage.textContent = 'Iniciando sesión...';
-    // Llama a un endpoint 'login' en Apps Script
-    // Ya no necesitas pasar { username, password } aquí, fetchData los coge de los inputs
+    loginMessage.className = 'message info';
     const response = await fetchData('login', {}, 'GET');
 
     if (response.status === 'success') {
@@ -89,9 +92,12 @@ loginButton.addEventListener('click', async () => {
         mainApp.classList.remove('hidden');
         loginMessage.textContent = '';
         renderAppBasedOnRole();
+        // Cargar el valor del aporte apenas se inicie la app
+        currentAporteValue = await getAporteValueFrontend();
     } else {
         loginMessage.textContent = response.message;
         loginMessage.className = 'message error'; // Aplica la clase de error
+        console.error('Login failed:', response.message); // Add console log for login errors
     }
 });
 
@@ -112,9 +118,9 @@ function renderAppBasedOnRole() {
         dashboardNav.click(); // Muestra el dashboard por defecto para administradores
     } else if (currentUserRole === 'tutora') {
         hideAdminElements();
-        // Ocultar elementos que no debe ver la tutora en el módulo de aportes
+        // Ocultar elementos que no debe ver la tutora en el módulo de aportes (ya implementado)
         document.getElementById('filter-tutora').closest('.form-group').classList.add('hidden');
-        document.getElementById('tutora-payment-view').classList.remove('hidden'); // Mostrar vista específica de tutora
+        // document.getElementById('tutora-payment-view').classList.remove('hidden'); // Esto se maneja en aportesNav.click()
         document.getElementById('payment-section').classList.add('hidden'); // Ocultar sección de registro de pago directo para tutoras
         aportesNav.click(); // Muestra el módulo de aportes por defecto para tutoras
     }
@@ -134,10 +140,14 @@ aportesNav.addEventListener('click', () => {
         loadParticipantesForSelect();
         document.getElementById('tutora-payment-view').classList.add('hidden'); // Ocultar vista de tutora si es admin
         document.getElementById('payment-section').classList.remove('hidden'); // Mostrar sección de registro de pago
+        // Por ahora mantenemos la separación en el mismo módulo. Más adelante crearemos secciones separadas.
     } else if (currentUserRole === 'tutora') {
-        loadTutoraParticipantes();
+        loadTutoraParticipantes(); // Carga solo sus participantes
         document.getElementById('payment-section').classList.add('hidden'); // Ocultar sección de registro de pago para tutoras
-        document.getElementById('tutora-payment-view').classList.remove('hidden'); // Mostrar vista específica de tutora
+        document.getElementById('tutora-payment-view').classList.remove('hidden'); // Mostrar vista específica de tutora (Tabla de tutoras)
+        // Ocultar la sección de la tabla de todos los aportes para tutoras
+        document.getElementById('aportes-list-section').classList.add('hidden'); // Asumiendo que esta es la sección de "Todos los aportes"
+        document.getElementById('participante-selection-section').classList.add('hidden'); // Ocultar la selección de participante para el registro de aportes
     }
 });
 
@@ -158,7 +168,7 @@ async function loadDashboardStats() {
             window.myChart.destroy();
         }
         window.myChart = new Chart(ctx, { // Store new chart instance
-            type: 'bar',
+            type: 'bar', // Manteniendo 'bar' por ahora. Mejoraremos las gráficas en un paso posterior.
             data: {
                 labels: labels,
                 datasets: [{
@@ -176,6 +186,28 @@ async function loadDashboardStats() {
                     y: {
                         beginAtZero: true
                     }
+                },
+                // Añadir algunas opciones básicas para mejorar la visualización si está "muy lejos"
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'top',
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return `$${context.parsed.y.toFixed(2)}`;
+                            }
+                        }
+                    }
+                },
+                layout: {
+                    padding: {
+                        left: 10,
+                        right: 10,
+                        top: 10,
+                        bottom: 10
+                    }
                 }
             }
         });
@@ -189,7 +221,7 @@ async function loadDashboardStats() {
         if (response.ultimosAportes && response.ultimosAportes.length > 0) {
             response.ultimosAportes.forEach(aporte => {
                 const li = document.createElement('li');
-                li.textContent = `ID: ${aporte.id_aporte.substring(0, 8)}... - Monto: $${aporte.monto} - Fecha: ${new Date(aporte.fecha).toLocaleDateString()}`;
+                li.textContent = `ID: ${aporte.id_aporte.substring(0, 8)}... - Monto: $${parseFloat(aporte.monto).toFixed(2)} - Fecha: ${new Date(aporte.fecha).toLocaleDateString()}`;
                 ultimosAportesList.appendChild(li);
             });
         } else {
@@ -198,6 +230,7 @@ async function loadDashboardStats() {
 
     } else {
         alert('Error al cargar las estadísticas del dashboard: ' + response.message);
+        console.error('Error loading dashboard stats:', response); // Detailed error
     }
 }
 
@@ -212,23 +245,28 @@ async function loadAportesList(monthFilter = '', tutoraFilter = '', searchTerm =
     if (response.status === 'success') {
         let filteredAportes = response.data.filter(aporte => { // 'response.data' porque getAportes devuelve { status: 'success', data: [...] }
             const aporteDate = new Date(aporte.Fecha_Aporte);
-            const monthMatches = monthFilter ? (aporteDate.getFullYear() === new Date(monthFilter).getFullYear() && aporteDate.getMonth() === new Date(monthFilter).getMonth()) : true;
-            const tutoraMatches = tutoraFilter ? (aporte.Tutora && aporte.Tutora.toLowerCase() === tutoraFilter.toLowerCase()) : true;
+            // Asegúrate de que monthFilter sea una fecha válida para la comparación
+            const monthMatches = monthFilter ? (new Date(aporteDate.getFullYear(), aporteDate.getMonth()).getTime() === new Date(new Date(monthFilter).getFullYear(), new Date(monthFilter).getMonth()).getTime()) : true;
+            const tutoraMatches = tutoraFilter ? (aporte.Tutora && String(aporte.Tutora).toLowerCase() === tutoraFilter.toLowerCase()) : true; // Asegurarse de que Tutora sea string
             const searchMatches = searchTerm ? (
-                (aporte.Nombre_Participante && aporte.Nombre_Participante.toLowerCase().includes(searchTerm.toLowerCase())) ||
-                (aporte.ID_Participante && aporte.ID_Participante.toLowerCase().includes(searchTerm.toLowerCase()))
+                (aporte.Nombre_Participante && String(aporte.Nombre_Participante).toLowerCase().includes(searchTerm.toLowerCase())) ||
+                (aporte.ID_Participante && String(aporte.ID_Participante).toLowerCase().includes(searchTerm.toLowerCase())) ||
+                (aporte.Codigo_Participante && String(aporte.Codigo_Participante).toLowerCase().includes(searchTerm.toLowerCase())) // Añadir búsqueda por código
             ) : true;
             return monthMatches && tutoraMatches && searchMatches;
         });
 
         if (filteredAportes.length > 0) {
+            // Ordenar los aportes de más reciente a más antiguo
+            filteredAportes.sort((a, b) => new Date(b.Fecha_Aporte) - new Date(a.Fecha_Aporte));
+
             filteredAportes.forEach(aporte => {
                 const row = `
                     <tr>
                         <td>${new Date(aporte.Fecha_Aporte).toLocaleDateString()}</td>
                         <td>${aporte.Nombre_Participante}</td>
                         <td class="admin-only">${aporte.Tutora}</td>
-                        <td>$${parseFloat(aporte.Monto_Total_Pagado).toFixed(2)}</td>
+                        <td>$${parseFloat(aporte.Monto_Total_Pagado || 0).toFixed(2)}</td>
                         <td>${aporte.Meses_Pagados || 'N/A'}</td>
                         <td>$${parseFloat(aporte.Monto_Abono || 0).toFixed(2)}</td>
                         <td>
@@ -238,15 +276,17 @@ async function loadAportesList(monthFilter = '', tutoraFilter = '', searchTerm =
                 `;
                 aportesTableBody.insertAdjacentHTML('beforeend', row);
             });
+            // Ocultar columna de tutora si no es admin, aunque esto debería ser manejado por CSS y showAdminElements
+            if (currentUserRole !== 'admin') {
+                 // Esto no es necesario aquí si showAdminElements/hideAdminElements se usan correctamente para la tabla
+            }
         } else {
             noAportesMessage.classList.remove('hidden');
         }
-        // Configurar la visibilidad de la columna de tutora después de cargar los datos
-        if (currentUserRole !== 'admin') {
-            document.querySelectorAll('.admin-only').forEach(el => el.classList.add('hidden'));
-        }
+
     } else {
         alert('Error al cargar la lista de aportes: ' + response.message);
+        console.error('Error loading aportes list:', response); // Detailed error
     }
 }
 
@@ -262,16 +302,17 @@ async function loadParticipantesForSelect() {
     const selectParticipante = document.getElementById('select-participante');
     selectParticipante.innerHTML = '<option value="">-- Seleccione un participante --</option>';
 
-    const response = await fetchData('getParticipantes');
+    const response = await fetchData('getParticipantes'); // Admin ve todos los participantes
     if (response.status === 'success') {
-        response.data.forEach(p => { // Acceder a 'response.data'
+        response.data.forEach(p => {
             const option = document.createElement('option');
             option.value = p.id;
             option.textContent = `${p.nombre} (${p.codigo})`;
             selectParticipante.appendChild(option);
         });
     } else {
-        alert('Error al cargar participantes: ' + response.message);
+        alert('Error al cargar participantes para selección: ' + response.message);
+        console.error('Error loading participants for select (admin):', response); // Detailed error
     }
 }
 
@@ -282,20 +323,23 @@ document.getElementById('select-participante').addEventListener('change', async 
 
     if (participantId) {
         const response = await fetchData('getParticipantDetails', { id: participantId });
-        if (response.status === 'success') {
-            document.getElementById('info-codigo').textContent = response.codigo || 'N/A';
-            document.getElementById('info-nombre').textContent = response.nombre;
-            document.getElementById('info-ciudadania').textContent = response.ciudadania;
-            document.getElementById('info-ultimo-mes-pagado').textContent = response.ultimoMesPagado ? new Date(response.ultimoMesPagado).toLocaleDateString('es-ES', { month: 'long', year: 'numeric' }) : 'Nunca';
-            document.getElementById('info-meses-pendientes').textContent = response.mesesPendientes;
-            document.getElementById('info-total-pendiente').textContent = `$${response.totalPendiente.toFixed(2)}`;
-            document.getElementById('info-tutora').textContent = response.tutora;
+        console.log('Respuesta de getParticipantDetails:', response); // *** LOGGING PARA DEPURACIÓN DEL ERROR ***
+        if (response.status === 'success' && response.data) { // Se espera { status: 'success', data: {...} }
+            const participantData = response.data; // Acceder directamente a los datos
+            document.getElementById('info-codigo').textContent = participantData.codigo || 'N/A';
+            document.getElementById('info-nombre').textContent = participantData.nombre;
+            document.getElementById('info-ciudadania').textContent = participantData.ciudadania;
+            document.getElementById('info-ultimo-mes-pagado').textContent = participantData.ultimoMesPago ? new Date(participantData.ultimoMesPago).toLocaleDateString('es-ES', { month: 'long', year: 'numeric' }) : 'Nunca';
+            document.getElementById('info-meses-pendientes').textContent = participantData.mesesPendientes;
+            document.getElementById('info-total-pendiente').textContent = `$${participantData.totalPendiente.toFixed(2)}`;
+            document.getElementById('info-tutora').textContent = participantData.tutora;
             participanteInfoDiv.classList.remove('hidden');
             paymentSection.classList.remove('hidden');
-            generateMesesAPagarCheckboxes(response.mesesDisponiblesParaPagar);
+            generateMesesAPagarCheckboxes(participantData.mesesDisponiblesParaPagar);
             calculateTotalAmountDue(); // Calcular el monto inicial
         } else {
             alert('Error al obtener detalles del participante: ' + response.message);
+            console.error('getParticipantDetails failed:', response); // Muestra el objeto de error completo en consola
             participanteInfoDiv.classList.add('hidden');
             paymentSection.classList.add('hidden');
         }
@@ -308,6 +352,10 @@ document.getElementById('select-participante').addEventListener('change', async 
 function generateMesesAPagarCheckboxes(meses) {
     const container = document.getElementById('meses-a-pagar-checkboxes');
     container.innerHTML = '';
+    if (!meses || meses.length === 0) {
+        container.innerHTML = '<p>Este participante no tiene meses pendientes para pagar.</p>';
+        return;
+    }
     meses.forEach(mes => {
         const div = document.createElement('div');
         div.className = 'checkbox-item'; // Usar una clase CSS simple
@@ -330,32 +378,37 @@ async function calculateTotalAmountDue() {
 
     const selectedMonths = Array.from(document.querySelectorAll('#meses-a-pagar-checkboxes input:checked'))
                                .map(cb => cb.value);
-    const abono = parseFloat(document.getElementById('monto-abono').value) || 0;
+    const abonoInput = parseFloat(document.getElementById('monto-abono').value) || 0;
 
-    // Aquí se necesita el valor del aporte por mes de forma dinámica del backend si es posible,
-    // o usar la lógica actual del frontend si es fija.
-    // Para simplificar y seguir el flujo, usamos la lógica de frontend por ahora:
-    const currentAporteValue = await getAporteValueFrontend();
+    // Usamos el valor del aporte obtenido al inicio de la app
+    const montoPorMes = currentAporteValue;
 
-    const totalMesesCalculado = selectedMonths.length * currentAporteValue;
-    const totalACobrar = totalMesesCalculado - abono;
+    const totalMesesCalculado = selectedMonths.length * montoPorMes;
+    const totalACobrar = totalMesesCalculado - abonoInput; // Resta el abono del monto a cobrar
+    
     document.getElementById('monto-total-a-cobrar').value = `$${Math.max(0, totalACobrar).toFixed(2)}`;
+    // Opcional: si quieres que el "Monto Recibido" se autocomplete con el total a cobrar, podrías hacerlo aquí
+    // document.getElementById('monto-recibido').value = Math.max(0, totalACobrar).toFixed(2);
 }
 
-// Helper para obtener el valor del aporte (simulando la llamada a Apps Script)
+// Helper para obtener el valor del aporte DINAMICO desde Apps Script
 async function getAporteValueFrontend() {
-    // Si quieres que esto sea dinámico desde el backend, necesitarías un endpoint en Apps Script
-    // que devuelva los valores de aporte desde la hoja de Configuración.
-    // Por ahora, se mantiene la lógica fija según las fechas.
-    const today = new Date();
-    // Ajustar fechas a inicio de mes para comparación precisa
-    const todayMonthStart = new Date(today.getFullYear(), today.getMonth(), 1);
-    const julio2024Start = new Date(2024, 6, 1); // Mes 6 es Julio
+    const response = await fetchData('getAporteConfig'); // Nueva llamada al Apps Script
+    if (response.status === 'success' && response.hasOwnProperty('aporteValue')) {
+        console.log('Valor del aporte obtenido del servidor:', response.aporteValue);
+        return parseFloat(response.aporteValue);
+    } else {
+        console.error('Error al obtener el valor del aporte desde el servidor. Usando valor por defecto:', response);
+        // Fallback a la lógica anterior si el servidor falla
+        const today = new Date();
+        const todayMonthStart = new Date(today.getFullYear(), today.getMonth(), 1);
+        const julio2024Start = new Date(2024, 6, 1); // Mes 6 es Julio
 
-    if (todayMonthStart >= julio2024Start) {
-        return 3000;
-    } else { // Asumiendo que el aporte de 2000 es antes de Julio 2024
-        return 2000;
+        if (todayMonthStart >= julio2024Start) {
+            return 3000;
+        } else { // Asumiendo que el aporte de 2000 es antes de Julio 2024
+            return 2000;
+        }
     }
 }
 
@@ -368,32 +421,37 @@ document.getElementById('registrar-aporte-button').addEventListener('click', asy
     const abonoInput = parseFloat(document.getElementById('monto-abono').value) || 0;
     const registroMessage = document.getElementById('registro-message');
 
+    registroMessage.textContent = ''; // Limpiar mensajes anteriores
+    registroMessage.className = 'message';
+
     if (!participantId || mesesAPagar.length === 0 || montoRecibido <= 0) {
         registroMessage.textContent = 'Por favor, seleccione un participante, al menos un mes y el monto recibido.';
         registroMessage.className = 'message error';
         return;
     }
 
-    const currentAporteValue = await getAporteValueFrontend();
-    const valorMesesTeorico = mesesAPagar.length * currentAporteValue;
+    const montoPorMes = currentAporteValue; // Usar el valor dinámico
+    const valorMesesTeorico = mesesAPagar.length * montoPorMes;
     
-    let montoTotalPagado; // El monto que se registrará como "total pagado"
-    let montoAbonoReal;   // El abono real que se registrará
-    let montoPagoMeses;   // El monto que cubre los meses
+    let montoTotalPagado = montoRecibido; // El monto real entregado por el padre
+    let montoAbonoTransaccion = 0;   // El abono generado en esta transacción
+    let montoCubiertoMeses = 0;      // El monto que efectivamente cubre meses en esta transacción
 
-    // Si el monto recibido es mayor o igual al valor de los meses, cubre los meses y puede haber abono
+    // Determinar cuánto del 'montoRecibido' cubre meses y cuánto es abono
     if (montoRecibido >= valorMesesTeorico) {
-        montoPagoMeses = valorMesesTeorico;
-        montoAbonoReal = montoRecibido - valorMesesTeorico;
-        montoTotalPagado = montoRecibido;
-    } else { // Si el monto recibido es menor que el valor de los meses, es un pago parcial
-        montoAbonoReal = abonoInput; // El abono se mantiene como el input del usuario
-        montoPagoMeses = montoRecibido - abonoInput; // El resto del monto recibido cubre meses
-        if (montoPagoMeses < 0) { // Si el abono es mayor que el recibido, no hay pago de meses
-            montoPagoMeses = 0;
-            montoAbonoReal = montoRecibido; // Todo el monto recibido es un abono
+        montoCubiertoMeses = valorMesesTeorico;
+        montoAbonoTransaccion = montoRecibido - valorMesesTeorico;
+    } else {
+        // Si el monto recibido es menor a lo que cubren los meses
+        // Primero, se considera si el usuario quiso dejar un abono explícito (abonoInput)
+        // Y el resto cubre meses.
+        if (montoRecibido > abonoInput) {
+            montoCubiertoMeses = montoRecibido - abonoInput;
+            montoAbonoTransaccion = abonoInput;
+        } else { // Si el monto recibido es <= al abonoInput, todo es abono
+            montoCubiertoMeses = 0;
+            montoAbonoTransaccion = montoRecibido;
         }
-        montoTotalPagado = montoRecibido;
         registroMessage.textContent = 'Advertencia: El monto recibido es menor al total de los meses seleccionados. Se registrará un pago parcial.';
         registroMessage.className = 'message info';
     }
@@ -405,9 +463,9 @@ document.getElementById('registrar-aporte-button').addEventListener('click', asy
     const data = {
         id_participante: participantId,
         mesesAPagar: mesesAPagar,
-        montoTotalPagado: montoTotalPagado, // Monto total que el padre entregó
-        montoPagoMeses: montoPagoMeses,     // Parte del monto que cubre los meses
-        abono: montoAbonoReal               // Parte del monto que es abono
+        montoTotalRecibido: montoTotalPagado,     // Lo que el padre entregó
+        montoCubiertoMeses: montoCubiertoMeses,   // Parte que cubre meses
+        montoAbonoTransaccion: montoAbonoTransaccion // Parte que es abono en esta transacción
     };
 
     const response = await fetchData('recordAporte', {}, 'POST', data);
@@ -422,11 +480,15 @@ document.getElementById('registrar-aporte-button').addEventListener('click', asy
         document.getElementById('monto-abono').value = '0';
         document.getElementById('monto-recibido').value = '';
         document.getElementById('monto-total-a-cobrar').value = '';
+        // Limpiar checkboxes
+        document.getElementById('meses-a-pagar-checkboxes').innerHTML = '';
+        
         loadAportesList();
         loadParticipantesForSelect(); // Recargar para actualizar "ultimo mes pagado"
     } else {
         registroMessage.textContent = 'Error al registrar aporte: ' + response.message;
         registroMessage.className = 'message error';
+        console.error('Error al registrar aporte:', response); // Detailed error
     }
 });
 
@@ -436,28 +498,35 @@ async function loadTutoraParticipantes() {
     const tutoraParticipantesTableBody = document.getElementById('tutora-participantes-table-body');
     tutoraParticipantesTableBody.innerHTML = '';
 
-    const response = await fetchData('getParticipantes', { tutoraName: currentTutoraName }); // Llama a la función específica de tutora
+    // El Apps Script (Code.gs) para 'getParticipantes' DEBE filtrar por 'tutoraName'
+    // cuando se detecte que la petición viene de una tutora (ej: e.parameter.tutoraName)
+    const response = await fetchData('getParticipantes', { tutoraName: currentTutoraName });
     if (response.status === 'success') {
         if (response.data.length > 0) { // Acceder a 'response.data'
-            response.data.forEach(p => {
-                const row = `
-                    <tr>
-                        <td>${p.codigo || 'N/A'}</td>
-                        <td>${p.nombre}</td>
-                        <td>${p.ciudadania}</td>
-                        <td>${p.ultimoMesPago ? new Date(p.ultimoMesPago).toLocaleDateString('es-ES', { month: 'long', year: 'numeric' }) : 'Nunca'}</td>
-                        <td>${p.mesesEnDeuda}</td>
-                        <td>$${p.totalAPagarEstarAlDia.toFixed(2)}</td>
-                        <td>
-                            <button class="view-payment-status" data-id="${p.id}" data-name="${p.nombre}">Ver</button>
-                        </td>
-                        <td>
-                            <button class="share-participant-url" data-id="${p.id}">Compartir URL</button>
-                        </td>
-                    </tr>
+            for (const p of response.data) { // Usar for...of para await dentro
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${p.codigo || 'N/A'}</td>
+                    <td>${p.nombre}</td>
+                    <td>${p.ciudadania}</td>
+                    <td>${p.ultimoMesPago ? new Date(p.ultimoMesPago).toLocaleDateString('es-ES', { month: 'long', year: 'numeric' }) : 'Nunca'}</td>
+                    <td>${p.mesesEnDeuda}</td>
+                    <td>$${p.totalAPagarEstarAlDia ? p.totalAPagarEstarAlDia.toFixed(2) : '0.00'}</td>
+                    <td>
+                        <button class="view-payment-status" data-id="${p.id}" data-name="${p.nombre}">Ver Estado</button>
+                    </td>
+                    <td>
+                        <button class="share-participant-url" data-id="${p.id}">Compartir URL</button>
+                    </td>
                 `;
-                tutoraParticipantesTableBody.insertAdjacentHTML('beforeend', row);
-            });
+                tutoraParticipantesTableBody.appendChild(row);
+
+                // *** INTEGRACIÓN DEL CUADRO DE ESTADO DE PAGOS DIRECTAMENTE BAJO EL PARTICIPANTE ***
+                // No lo mostraremos en una tabla, sino en un div expandible o similar si es necesario.
+                // Por ahora, el modal sigue siendo la forma en que se muestra al hacer clic en "Ver Estado".
+                // Para mostrarlo directamente, se requeriría un cambio significativo en el HTML base y CSS.
+                // Lo mantendremos en el modal por ahora y lo revisaremos en una fase posterior si es crucial que esté en línea.
+            }
 
             // Añadir event listeners para los botones "Ver Estado" y "Compartir URL"
             document.querySelectorAll('.view-payment-status').forEach(button => {
@@ -479,6 +548,7 @@ async function loadTutoraParticipantes() {
         }
     } else {
         alert('Error al cargar participantes para la tutora: ' + response.message);
+        console.error('Error loading tutora participants:', response); // Detailed error
     }
 }
 
@@ -491,6 +561,7 @@ async function showPaymentStatusModal(participantId, participantName) {
     paymentStatusGridContainer.innerHTML = 'Cargando estado de pagos...';
     modal.classList.remove('hidden');
 
+    // La función 'getPublicParticipantData' ya existe y es adecuada para obtener el estado de pagos
     const response = await fetchData('getPublicParticipantData', { id: participantId });
     if (response.status === 'success' && response.data) {
         const participantInfo = response.data.participantInfo;
@@ -516,15 +587,17 @@ async function showPaymentStatusModal(participantId, participantName) {
                 <div class="payment-grid-header">Dic</div>
         `;
 
-        // Generar años desde 2022 hasta el año actual o 2027 (según tu lógica de aportes)
+        // Generar años desde 2022 hasta el año actual + 2 (para ver un poco a futuro)
         const currentYear = new Date().getFullYear();
-        const maxYear = 2027; // O Math.max(currentYear, 2025) si 2025 era un tope fijo
+        const maxYear = Math.max(currentYear + 2, 2027); // Asegurar que llega al menos a 2027
 
         for (let year = 2022; year <= maxYear; year++) {
             gridHtml += `<div class="payment-grid-item font-bold">${year}</div>`;
             const months = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
-            months.forEach(month => {
-                const status = paymentStatus[year] && paymentStatus[year][month] ? paymentStatus[year][month] : '✗';
+            months.forEach((month, index) => {
+                // Formatear mes para buscar en paymentStatus: Ej. "Julio 2024"
+                const fullMonthName = new Date(year, index).toLocaleDateString('es-ES', { month: 'long' });
+                const status = paymentStatus[year] && paymentStatus[year][fullMonthName] ? paymentStatus[year][fullMonthName] : '✗';
                 const statusClass = status === '✓' ? 'paid' : 'unpaid';
                 gridHtml += `<div class="payment-grid-item ${statusClass}">${status}</div>`;
             });
@@ -534,6 +607,7 @@ async function showPaymentStatusModal(participantId, participantName) {
 
     } else {
         paymentStatusGridContainer.innerHTML = `<p class="message error">Error al cargar el estado de pagos: ${response.message}</p>`;
+        console.error('Error loading payment status modal:', response);
     }
 }
 
@@ -543,6 +617,7 @@ async function generateAndShareParticipantUrl(participantId) {
         prompt('Copia la siguiente URL para compartir con el participante:', response.url);
     } else {
         alert('Error al generar la URL: ' + response.message);
+        console.error('Error generating participant URL:', response);
     }
 }
 
@@ -583,7 +658,8 @@ async function loadParticipantesCrudTable() {
             participantesCrudTableBody.innerHTML = '<tr><td colspan="5" class="text-center">No hay participantes registrados.</td></tr>';
         }
     } else {
-        alert('Error al cargar la lista de participantes: ' + response.message);
+        alert('Error al cargar la lista de participantes (CRUD): ' + response.message);
+        console.error('Error loading participants for CRUD:', response);
     }
 }
 
@@ -622,6 +698,7 @@ document.getElementById('save-participante-button').addEventListener('click', as
     } else {
         crudMessage.textContent = 'Error: ' + response.message;
         crudMessage.className = 'message error';
+        console.error('Error saving participant:', response);
     }
 });
 
@@ -638,8 +715,9 @@ function editParticipante(id) {
         document.getElementById('new-codigo').value = rowToEdit.cells[0].textContent !== 'N/A' ? rowToEdit.cells[0].textContent : '';
         document.getElementById('new-nombre').value = rowToEdit.cells[1].textContent;
         document.getElementById('new-ciudadania').value = rowToEdit.cells[2].textContent;
-        document.getElementById('new-tutora').value = rowToEdit.cells[3].textContent.toLowerCase();
-
+        // Al editar, la tutora debe coincidir con el valor de la opción del select
+        document.getElementById('new-tutora').value = rowToEdit.cells[3].textContent; // No usar toLowerCase aquí
+        
         document.getElementById('save-participante-button').textContent = 'Actualizar Participante';
         document.getElementById('cancel-edit-button').classList.remove('hidden');
         currentEditParticipanteId = id;
@@ -674,6 +752,7 @@ async function deleteParticipante(id) {
         } else {
             crudMessage.textContent = 'Error al eliminar participante: ' + response.message;
             crudMessage.className = 'message error';
+            console.error('Error deleting participant:', response);
         }
     }
 }
@@ -683,6 +762,12 @@ window.addEventListener('DOMContentLoaded', async () => {
     const urlParams = new URLSearchParams(window.location.search);
     const action = urlParams.get('action');
     const participantId = urlParams.get('id');
+
+    // Inicializar el valor del aporte si se carga la página principal
+    if (!action && !participantId) {
+         currentAporteValue = await getAporteValueFrontend();
+    }
+
 
     if (action === 'getPublicParticipantData' && participantId) {
         loginModule.classList.add('hidden');
@@ -711,7 +796,7 @@ window.addEventListener('DOMContentLoaded', async () => {
                 <p><strong>Ciudadanía:</strong> ${participantInfo.ciudadania}</p>
                 <p><strong>Último Mes Pago:</strong> ${participantInfo.ultimoMesPago ? new Date(participantInfo.ultimoMesPago).toLocaleDateString('es-ES', { month: 'long', year: 'numeric' }) : 'Nunca'}</p>
                 <p><strong>Meses en Deuda:</strong> ${participantInfo.mesesEnDeuda}</p>
-                <p><strong>Total a Pagar (al día):</strong> $${participantInfo.totalAPagarEstarAlDia.toFixed(2)}</p>
+                <p><strong>Total a Pagar (al día):</strong> $${participantInfo.totalAPagarEstarAlDia ? participantInfo.totalAPagarEstarAlDia.toFixed(2) : '0.00'}</p>
             `;
 
             let gridHtml = `
@@ -733,13 +818,14 @@ window.addEventListener('DOMContentLoaded', async () => {
             `;
 
             const currentYear = new Date().getFullYear();
-            const maxYear = 2027; // Tu lógica de años de aporte
+            const maxYear = Math.max(currentYear + 2, 2027); // Tu lógica de años de aporte
 
             for (let year = 2022; year <= maxYear; year++) {
                 gridHtml += `<div class="payment-grid-item font-bold">${year}</div>`;
                 const months = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
-                months.forEach(month => {
-                    const status = paymentStatus[year] && paymentStatus[year][month] ? paymentStatus[year][month] : '✗';
+                months.forEach((month, index) => {
+                    const fullMonthName = new Date(year, index).toLocaleDateString('es-ES', { month: 'long' });
+                    const status = paymentStatus[year] && paymentStatus[year][fullMonthName] ? paymentStatus[year][fullMonthName] : '✗';
                     const statusClass = status === '✓' ? 'paid' : 'unpaid';
                     gridHtml += `<div class="payment-grid-item ${statusClass}">${status}</div>`;
                 });
@@ -750,6 +836,7 @@ window.addEventListener('DOMContentLoaded', async () => {
         } else {
             document.getElementById('public-participant-details').innerHTML = `<p class="message error">Error al cargar la información del participante o participante no encontrado.</p>`;
             document.getElementById('public-payment-status-grid-container').innerHTML = '';
+            console.error('Error loading public participant data:', response);
         }
     } else {
         // Si no es una URL pública de participante, mostrar el módulo de login
