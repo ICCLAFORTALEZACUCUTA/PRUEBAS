@@ -33,41 +33,6 @@
         h1 { font-size: 2.5em; text-align: center; }
         h2 { font-size: 2em; border-bottom: 2px solid #eee; padding-bottom: 10px; margin-bottom: 20px; }
 
-        /* Botones y Formularios */
-        .button {
-            background-color: #007bff;
-            color: white;
-            padding: 10px 15px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 1em;
-            text-decoration: none;
-            display: inline-block;
-            margin-right: 10px;
-            margin-bottom: 10px;
-        }
-
-        .button:hover {
-            background-color: #0056b3;
-        }
-
-        .button.secondary {
-            background-color: #6c757d;
-        }
-
-        .button.secondary:hover {
-            background-color: #5a6268;
-        }
-
-        .button.danger {
-            background-color: #dc3545;
-        }
-
-        .button.danger:hover {
-            background-color: #c82333;
-        }
-
         .form-group {
             margin-bottom: 15px;
         }
@@ -79,21 +44,53 @@
         }
 
         .form-group input[type="text"],
-        .form-group input[type="password"],
         .form-group input[type="number"],
+        .form-group input[type="password"],
         .form-group input[type="date"],
-        .form-group select {
-            width: 100%;
-            padding: 8px;
+        .form-group select,
+        .form-group textarea {
+            width: calc(100% - 22px);
+            padding: 10px;
             border: 1px solid #ddd;
             border-radius: 4px;
-            box-sizing: border-box; /* Ensures padding doesn't affect total width */
+            box-sizing: border-box;
+        }
+
+        .button {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+            margin-right: 10px;
+            transition: background-color 0.3s ease;
+        }
+
+        .button:hover {
+            background-color: #0056b3;
+        }
+
+        .button.secondary {
+            background-color: #6c757d;
+        }
+        .button.secondary:hover {
+            background-color: #5a6268;
+        }
+
+        .button.danger {
+            background-color: #dc3545;
+        }
+        .button.danger:hover {
+            background-color: #c82333;
         }
 
         .message {
             padding: 10px;
             margin-bottom: 15px;
             border-radius: 4px;
+            display: none; /* Hidden by default */
         }
 
         .message.success {
@@ -108,89 +105,58 @@
             border: 1px solid #f5c6cb;
         }
 
-        /* Navegación */
-        .nav-bar {
-            background-color: #333;
-            padding: 10px 0;
-            text-align: center;
-            border-radius: 8px;
+        .tab-buttons {
+            display: flex;
             margin-bottom: 20px;
+            border-bottom: 2px solid #eee;
         }
 
-        .nav-bar button {
-            background: none;
-            border: none;
-            color: white;
-            padding: 10px 20px;
-            font-size: 1.1em;
+        .tab-button {
+            padding: 12px 20px;
             cursor: pointer;
+            background-color: #f0f0f0;
+            border: 1px solid #ddd;
+            border-bottom: none;
+            border-radius: 5px 5px 0 0;
+            margin-right: 5px;
+            font-weight: bold;
+            color: #555;
             transition: background-color 0.3s ease;
         }
 
-        .nav-bar button:hover, .nav-bar button.active {
-            background-color: #555;
-            border-radius: 4px;
+        .tab-button.active {
+            background-color: #007bff;
+            color: white;
+            border-color: #007bff;
+            border-bottom: 2px solid #007bff;
         }
 
-        /* Diseño de Cuadrículas y Flexbox */
-        .dashboard-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
-            margin-bottom: 20px;
+        .tab-button:hover:not(.active) {
+            background-color: #e2e6ea;
         }
 
-        .card {
-            background-color: #e9ecef;
-            padding: 20px;
-            border-radius: 8px;
-            text-align: center;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        .module {
+            display: none; /* Hidden by default */
         }
 
-        .card h3 {
-            margin-top: 0;
-            color: #007bff;
+        .module.active {
+            display: block;
         }
 
-        .card p {
-            font-size: 1.5em;
-            font-weight: bold;
-            color: #343a40;
+        /* Loading Spinner */
+        .loading-spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            border-left-color: #007bff;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+            display: none; /* Hidden by default */
         }
 
-        .flex-container {
-            display: flex;
-            gap: 20px;
-            flex-wrap: wrap; /* Allows items to wrap on smaller screens */
-        }
-
-        .flex-item {
-            flex: 1; /* Allows items to expand */
-            min-width: 300px; /* Minimum width to prevent items from becoming too small */
-        }
-
-        /* Charts responsiveness */
-        .chart-container {
-            position: relative;
-            margin: auto;
-            height: 400px; /* Fixed height for charts */
-            max-width: 100%;
-        }
-
-        @media (max-width: 768px) {
-            .flex-item {
-                min-width: 100%; /* Full width on small screens */
-            }
-            .chart-container {
-                height: 300px; /* Smaller height on small screens */
-            }
-        }
-
-        @media (max-width: 480px) {
-            .chart-container {
-                height: 250px; /* Even smaller height on extra small screens */
-            }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
         }
 
         /* Tables */
@@ -204,7 +170,6 @@
             border: 1px solid #ddd;
             padding: 8px;
             text-align: left;
-            vertical-align: top; /* Default vertical alignment */
         }
 
         .data-table th {
@@ -212,130 +177,12 @@
             font-weight: bold;
         }
 
-        .data-table tr:nth-child(even) {
+        .data-table tbody tr:nth-child(even) {
             background-color: #f9f9f9;
         }
 
-        .data-table tr:hover {
-            background-color: #f1f1f1;
-        }
-
-        /* Table Responsiveness */
-        @media (max-width: 768px) {
-            .data-table.responsive {
-                display: block;
-                width: 100%;
-                overflow-x: auto;
-                white-space: nowrap; /* Prevent content from wrapping inside cells */
-            }
-
-            .data-table.responsive thead,
-            .data-table.responsive tbody,
-            .data-table.responsive th,
-            .data-table.responsive td,
-            .data-table.responsive tr {
-                display: block;
-            }
-
-            .data-table.responsive thead tr {
-                position: absolute;
-                top: -9999px;
-                left: -9999px;
-            }
-
-            .data-table.responsive tr {
-                border: 1px solid #ccc;
-                margin-bottom: 10px;
-            }
-
-            .data-table.responsive td {
-                border: none;
-                border-bottom: 1px solid #eee;
-                position: relative;
-                padding-left: 50%; /* Adjust as needed for label width */
-                text-align: right;
-            }
-
-            .data-table.responsive td::before {
-                content: attr(data-label);
-                position: absolute;
-                left: 6px;
-                width: 45%; /* Adjust as needed for label width */
-                padding-right: 10px;
-                white-space: nowrap;
-                text-align: left;
-                font-weight: bold;
-            }
-        }
-
-        @media (max-width: 400px) {
-            .data-table.responsive td {
-                padding-left: 40%;
-            }
-            .data-table.responsive td::before {
-                width: 35%;
-            }
-        }
-
-
-        /* Utilities */
-        .hidden {
-            display: none !important;
-        }
-
-        .text-center {
-            text-align: center;
-        }
-
-        .scrollable-content {
-            max-height: 400px; /* Max height for tables or lists */
-            overflow-y: auto;
-            border: 1px solid #eee;
-            border-radius: 4px;
-        }
-
-        /* Payment Status Grid */
-        .payment-status-grid-container, .public-payment-status-grid-container {
-            display: grid;
-            grid-template-columns: repeat(13, 1fr); /* Year + 12 months */
-            gap: 1px;
-            background-color: #ddd; /* Grid line color */
-            border: 1px solid #ddd;
-            overflow-x: auto; /* Allow horizontal scroll if many months/years */
-            max-height: 400px; /* Limit height and allow vertical scroll */
-            margin-top: 15px;
-        }
-
-        .payment-grid-header, .payment-grid-item {
-            background-color: #fff;
-            padding: 8px;
-            text-align: center;
-            font-size: 0.9em;
-            border: 1px solid #eee; /* Inner cell borders */
-        }
-
-        .payment-grid-header {
-            font-weight: bold;
-            background-color: #f0f0f0;
-        }
-
-        .paid {
-            color: white;
-            background-color: #28a745; /* Green */
-        }
-
-        .unpaid {
-            color: white;
-            background-color: #dc3545; /* Red */
-        }
-        .font-bold {
-            font-weight: bold;
-        }
-        .text-right {
-            text-align: right;
-        }
-        .text-left {
-            text-align: left;
+        .data-table tbody tr:hover {
+            background-color: #eef;
         }
 
         /* Modal */
@@ -348,17 +195,20 @@
             width: 100%; /* Full width */
             height: 100%; /* Full height */
             overflow: auto; /* Enable scroll if needed */
-            background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+            background-color: rgba(0,0,0,0.6); /* Black w/ opacity */
+            justify-content: center;
+            align-items: center;
         }
 
         .modal-content {
             background-color: #fefefe;
-            margin: 10% auto; /* 15% from the top and centered */
-            padding: 20px;
+            margin: auto;
+            padding: 25px;
             border: 1px solid #888;
-            width: 80%; /* Could be more or less, depending on screen size */
-            max-width: 800px;
+            width: 80%; /* Could be more specific */
+            max-width: 900px; /* Max width */
             border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
             position: relative;
         }
 
@@ -367,6 +217,9 @@
             float: right;
             font-size: 28px;
             font-weight: bold;
+            position: absolute;
+            top: 10px;
+            right: 20px;
         }
 
         .close-button:hover,
@@ -376,1319 +229,1257 @@
             cursor: pointer;
         }
 
-        /* Participant Info Grid */
-        .participant-details-grid {
+        /* Payment Status Grid - Mejoras de Estilo */
+        .payment-status-grid-container, .public-payment-status-grid-container {
             display: grid;
-            grid-template-columns: 1fr 1fr; /* Two columns */
-            gap: 10px;
-            padding: 10px;
-            border: 1px solid #eee;
-            border-radius: 5px;
-            margin-bottom: 20px;
+            grid-template-columns: repeat(13, 1fr); /* Año + 12 meses */
+            gap: 1px;
+            background-color: #ccc; /* Color de las líneas de la cuadrícula */
+            border: 1px solid #bbb;
+            overflow-x: auto;
+            max-height: 400px;
+            margin-top: 15px;
+            border-radius: 5px; /* Bordes ligeramente redondeados */
+            box-shadow: 0 2px 5px rgba(0,0,0,0.15); /* Sombra sutil */
         }
 
-        .participant-details-grid div strong {
-            display: block;
-            margin-bottom: 5px;
-            color: #555;
-        }
-
-        /* Styles for new month/year selection */
-        .month-year-selection {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            margin-bottom: 15px;
-        }
-        .year-group {
-            border: 1px solid #ddd;
-            padding: 10px;
-            border-radius: 5px;
-            flex-grow: 1;
-            min-width: 250px;
-        }
-        .year-group h4 {
-            margin-top: 0;
-            margin-bottom: 10px;
-            color: #007bff;
-            border-bottom: 1px solid #eee;
-            padding-bottom: 5px;
-        }
-        .months-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr); /* 3 months columns */
-            gap: 5px;
-        }
-        .month-checkbox-group {
+        .payment-grid-header, .payment-grid-item {
+            background-color: #fcfcfc;
+            padding: 10px 5px;
+            text-align: center;
+            font-size: 0.9em;
+            border: 1px solid #eee; /* Bordes internos más suaves */
             display: flex;
             align-items: center;
-            gap: 5px;
-            white-space: nowrap; /* Prevent text from wrapping */
+            justify-content: center;
+            box-sizing: border-box;
         }
-        .month-checkbox-group input[type="checkbox"] {
-            width: auto; /* Override 100% width from .form-group input */
-            margin: 0;
+
+        .payment-grid-header {
+            font-weight: bold;
+            background-color: #e9ecef; /* Un gris más claro */
+            color: #343a40;
+            position: sticky;
+            top: 0;
+            z-index: 1;
+            white-space: nowrap; /* Evita que el texto se rompa */
+        }
+
+        /* Estilos mejorados para Pagado y No Pagado */
+        .paid {
+            color: white;
+            background-color: #28a745; /* Verde vibrante */
+            font-weight: bold;
+            box-shadow: inset 0 0 5px rgba(0,0,0,0.2); /* Sombra interna para profundidad */
+            border-radius: 3px; /* Bordes ligeramente redondeados para las celdas */
+        }
+
+        .unpaid {
+            color: white;
+            background-color: #dc3545; /* Rojo vibrante */
+            font-weight: bold;
+            box-shadow: inset 0 0 5px rgba(0,0,0,0.2);
+            border-radius: 3px;
+        }
+
+        .public-view-header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .public-view-header h2 {
+            font-size: 2em;
+            color: #007bff;
+        }
+        .public-view-header p {
+            font-size: 1.1em;
+            color: #555;
         }
     </style>
 </head>
 <body>
-
     <div id="login-module" class="container">
         <h1>Iniciar Sesión</h1>
-        <div class="form-group">
-            <label for="username">Usuario:</label>
-            <input type="text" id="username" name="username" required>
-        </div>
-        <div class="form-group">
-            <label for="password">Contraseña:</label>
-            <input type="password" id="password" name="password" required>
-        </div>
-        <button id="login-button" class="button">Ingresar</button>
-        <div id="login-message" class="message hidden"></div>
-    </div>
-
-    <div id="public-participant-view" class="container hidden">
-        <h2>Información del Participante</h2>
-        <div id="public-participant-details" class="participant-details-grid">
+        <form id="login-form">
+            <div class="form-group">
+                <label for="username">Usuario:</label>
+                <input type="text" id="username" name="username" required>
             </div>
-        <h3>Estado de Pagos</h3>
-        <div id="public-payment-status-grid-container" class="scrollable-content">
+            <div class="form-group">
+                <label for="password">Contraseña:</label>
+                <input type="password" id="password" name="password" required>
             </div>
+            <button type="submit" class="button">Entrar</button>
+            <div id="login-message" class="message error"></div>
+        </form>
     </div>
 
     <div id="main-app" class="container hidden">
-        <div class="nav-bar">
-            <button id="nav-dashboard" class="nav-button" data-module="dashboard-module">Dashboard</button>
-            <button id="nav-aportes-participantes" class="nav-button" data-module="aportes-participantes-module">Aportes - Participantes</button>
-            <button id="nav-registrar-aporte" class="nav-button" data-module="registrar-aporte-module">Registrar Aporte</button>
-            <button id="nav-add-edit-participant" class="nav-button admin-only hidden" data-module="add-edit-participant-module">Administrar Participantes</button>
-            <button id="nav-aportes-totales" class="nav-button" data-module="aportes-totales-module">Historial de Aportes</button>
-            <button id="nav-logout" class="nav-button secondary">Cerrar Sesión</button>
+        <h1 id="welcome-message">Bienvenido(a) al Sistema de Aportes</h1>
+        <p>Rol: <span id="user-role"></span> - Usuario: <span id="logged-in-username"></span></p>
+        <button id="logout-button" class="button secondary" style="float: right; margin-top: -50px;">Cerrar Sesión</button>
+
+        <div id="admin-tabs" class="tab-buttons hidden">
+            <button class="tab-button active" onclick="showModule('dashboard-module')">Dashboard</button>
+            <button class="tab-button" onclick="showModule('register-aportes-module')">Registrar Aportes</button>
+            <button class="tab-button" onclick="showModule('aportes-participantes-module')">Ver Aportes - Participantes</button>
+            <button class="tab-button" onclick="showModule('manage-participants-module')">Gestionar Participantes</button>
+            <button class="tab-button" onclick="showModule('manage-users-module')">Gestionar Usuarios</button>
         </div>
 
-        <section id="dashboard-module" class="module hidden">
+        <div id="dashboard-module" class="module active admin-only hidden">
             <h2>Dashboard</h2>
-            <div class="dashboard-grid">
-                <div class="card">
-                    <h3>Aportes Totales (Mes Actual)</h3>
-                    <p id="total-aportes-mes">$0</p>
-                </div>
-                <div class="card">
-                    <h3>Participantes Activos</h3>
-                    <p id="total-participantes">0</p>
-                </div>
-                <div class="card">
-                    <h3>Aportes Pendientes</h3>
-                    <p id="total-pendientes">$0</p>
-                </div>
-                <div class="card">
-                    <h3>Último Aporte Recibido</h3>
-                    <p id="ultimo-aporte">N/A</p>
-                </div>
-            </div>
-
-            <div class="flex-container">
-                <div class="flex-item chart-container">
-                    <h3>Gráfico de Aportes Mensuales</h3>
-                    <canvas id="aportesMensualesChart"></canvas>
-                </div>
-                <div class="flex-item chart-container">
-                    <h3>Gráfico de Aportes por Tutora</h3>
-                    <canvas id="aportesTutoraChart"></canvas>
-                </div>
-            </div>
-            <div class="flex-item">
-                <h3>Últimos 10 Aportes Recibidos</h3>
-                <div class="scrollable-content">
-                    <table class="data-table responsive">
-                        <thead>
-                            <tr>
-                                <th>Fecha</th>
-                                <th>Participante</th>
-                                <th>Monto</th>
-                                <th>Tutora</th>
-                            </tr>
-                        </thead>
-                        <tbody id="ultimos-aportes-table-body">
-                            </tbody>
-                    </table>
-                </div>
-            </div>
-        </section>
-
-        <section id="aportes-participantes-module" class="module hidden">
-            <h2>Aportes - Participantes</h2>
-
-            <div id="admin-filters" class="admin-only hidden">
-                <div class="flex-container" style="gap:10px; margin-bottom: 15px;">
-                    <div class="form-group flex-item">
-                        <label for="filter-tutora">Filtrar por Tutora:</label>
-                        <select id="filter-tutora" class="form-control">
-                            <option value="">Todas</option>
-                            </select>
+            <div class="loading-spinner" id="dashboard-loading"></div>
+            <div id="dashboard-content">
+                <div style="display: flex; justify-content: space-around; flex-wrap: wrap;">
+                    <div style="width: 45%; min-width: 300px; margin-bottom: 20px;">
+                        <h3>Participantes Activos por Tutora</h3>
+                        <canvas id="participantsByTutoraChart"></canvas>
                     </div>
-                    <div class="form-group flex-item">
-                        <label for="filter-month">Filtrar por Mes:</label>
-                        <select id="filter-month" class="form-control">
-                            <option value="">Todos</option>
-                            <option value="0">Enero</option>
-                            <option value="1">Febrero</option>
-                            <option value="2">Marzo</option>
-                            <option value="3">Abril</option>
-                            <option value="4">Mayo</option>
-                            <option value="5">Junio</option>
-                            <option value="6">Julio</option>
-                            <option value="7">Agosto</option>
-                            <option value="8">Septiembre</option>
-                            <option value="9">Octubre</option>
-                            <option value="10">Noviembre</option>
-                            <option value="11">Diciembre</option>
-                        </select>
-                    </div>
-                    <div class="form-group flex-item">
-                        <label for="filter-year">Filtrar por Año:</label>
-                        <select id="filter-year" class="form-control">
-                            <option value="">Todos</option>
-                            </select>
-                    </div>
-                    <div class="form-group flex-item">
-                        <label for="search-participant">Buscar (Nombre/Código):</label>
-                        <input type="text" id="search-participant" class="form-control" placeholder="Buscar participante...">
-                    </div>
-                    <div class="flex-item" style="display: flex; align-items: flex-end;">
-                        <button id="apply-filters" class="button">Aplicar Filtros</button>
+                    <div style="width: 45%; min-width: 300px; margin-bottom: 20px;">
+                        <h3>Estado de Deuda de Participantes</h3>
+                        <canvas id="debtStatusChart"></canvas>
                     </div>
                 </div>
+                <div style="margin-top: 30px;">
+                    <h3>Estadísticas Generales</h3>
+                    <p>Total de Participantes Activos: <strong id="total-active-participants"></strong></p>
+                    <p>Total de Participantes en Deuda: <strong id="total-debt-participants"></strong></p>
+                    <p>Monto Total en Deuda: <strong id="total-debt-amount"></strong></p>
+                    <p>Monto Total Aportado (este año): <strong id="total-aportado-year"></strong></p>
+                </div>
             </div>
+        </div>
 
-            <div id="admin-payment-view" class="scrollable-content admin-only hidden">
-                <table class="data-table responsive">
-                    <thead>
-                        <tr>
-                            <th>Código</th>
-                            <th>Participante</th>
-                            <th>Ciudadanía</th>
-                            <th>Tutora</th>
-                            <th>Último Mes Pago</th>
-                            <th>Meses en Deuda</th>
-                            <th>Total a Pagar (al día)</th>
-                            <th>Abono Pendiente</th>
-                            <th>Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody id="participantes-table-body">
-                        </tbody>
-                </table>
-            </div>
-
-            <div id="tutora-payment-view" class="scrollable-content tutora-only hidden">
-                <h3>Mis Participantes</h3>
-                <table class="data-table responsive">
-                    <thead>
-                        <tr>
-                            <th>Código</th>
-                            <th>Participante</th>
-                            <th>Ciudadanía</th>
-                            <th>Último Mes Pago</th>
-                            <th>Meses en Deuda</th>
-                            <th>Total a Pagar (al día)</th>
-                            <th>Abono Pendiente</th>
-                            <th>Acciones</th>
-                            <th>Compartir URL</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tutora-participantes-table-body">
-                        </tbody>
-                </table>
-            </div>
-        </section>
-
-        <section id="registrar-aporte-module" class="module hidden">
-            <h2>Registrar Nuevo Aporte</h2>
+        <div id="register-aportes-module" class="module admin-only hidden">
+            <h2>Registrar Aportes</h2>
             <form id="registro-aporte-form">
                 <div class="form-group">
-                    <label for="select-participante-aporte">Seleccionar Participante:</label>
-                    <select id="select-participante-aporte" required>
-                        </select>
-                </div>
-                <div id="participante-info" class="participant-details-grid hidden">
-                    <div><strong>Código:</strong> <span id="info-codigo"></span></div>
-                    <div><strong>Nombre:</strong> <span id="info-nombre"></span></div>
-                    <div><strong>Ciudadanía:</strong> <span id="info-ciudadania"></span></div>
-                    <div><strong>Último Mes Pagado:</strong> <span id="info-ultimo-mes"></span></div>
-                    <div><strong>Meses Pendientes:</strong> <span id="info-meses-pendientes"></span></div>
-                    <div><strong>Total Pendiente:</strong> <span id="info-total-pendiente"></span></div>
-                    <div><strong>Tutora:</strong> <span id="info-tutora"></span></div>
-                    <div><strong>Abono Pendiente:</strong> <span id="info-abono-pendiente"></span></div>
-                </div>
-                <div class="form-group">
-                    <label>Seleccionar Mes(es) y Año(s) de Pago:</label>
-                    <div class="month-year-selection" id="month-year-selection-container">
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label for="monto-pago-por-mes">Monto Sugerido por Mes:</label>
-                    <input type="number" id="monto-pago-por-mes" step="0.01" value="" disabled>
-                    <small>Este es el monto base mensual del participante.</small>
-                </div>
-                <div class="form-group">
-                    <label for="total-monto-calculado">Total Calculado (Meses Seleccionados):</label>
-                    <input type="number" id="total-monto-calculado" step="0.01" value="0.00" disabled>
-                    <small>Monto total de los meses seleccionados.</small>
-                </div>
-                <div class="form-group">
-                    <label for="monto-total-a-registrar">Monto Total a Registrar (Editable para Abonar):</label>
-                    <input type="number" id="monto-total-a-registrar" step="0.01" value="0.00" required>
-                    <small>Puedes modificar este valor si el padre abona más del total calculado o desea abonar a futuro.</small>
-                </div>
-                <div class="form-group">
-                    <label for="fecha-pago">Fecha de Registro de Pago:</label>
-                    <input type="date" id="fecha-pago" value="" required>
-                </div>
-                <button type="submit" class="button">Registrar Aporte</button>
-                <div id="registro-aporte-message" class="message hidden"></div>
-            </form>
-        </section>
-
-        <section id="add-edit-participant-module" class="module hidden admin-only">
-            <h2>Administrar Participantes</h2>
-            <button id="add-new-participant-button" class="button">Añadir Nuevo Participante</button>
-            <div class="scrollable-content" style="margin-top: 20px;">
-                <table class="data-table responsive">
-                    <thead>
-                        <tr>
-                            <th>Código</th>
-                            <th>Nombre</th>
-                            <th>Ciudadanía</th>
-                            <th>Tutora</th>
-                            <th>Monto Mensual</th>
-                            <th>Último Mes Pago</th>
-                            <th>Fecha de Ingreso</th>
-                            <th>Abono Pendiente</th>
-                            <th>Estado</th>
-                            <th>Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody id="admin-participants-table-body">
-                        </tbody>
-                </table>
-            </div>
-        </section>
-
-        <section id="aportes-totales-module" class="module hidden">
-            <h2>Historial de Aportes Totales</h2>
-            <div class="form-group flex-container" style="gap:10px; margin-bottom: 15px;">
-                <div class="form-group flex-item">
-                    <label for="filter-aportes-month">Filtrar por Mes:</label>
-                    <select id="filter-aportes-month" class="form-control">
-                        <option value="">Todos</option>
-                        <option value="Enero">Enero</option>
-                        <option value="Febrero">Febrero</option>
-                        <option value="Marzo">Marzo</option>
-                        <option value="Abril">Abril</option>
-                        <option value="Mayo">Mayo</option>
-                        <option value="Junio">Junio</option>
-                        <option value="Julio">Julio</option>
-                        <option value="Agosto">Agosto</option>
-                        <option value="Septiembre">Septiembre</option>
-                        <option value="Octubre">Octubre</option>
-                        <option value="Noviembre">Noviembre</option>
-                        <option value="Diciembre">Diciembre</option>
+                    <label for="participante-select">Seleccionar Participante:</label>
+                    <select id="participante-select" required>
+                        <option value="">Cargando participantes...</option>
                     </select>
                 </div>
-                <div class="form-group flex-item">
-                    <label for="filter-aportes-year">Filtrar por Año:</label>
-                    <select id="filter-aportes-year" class="form-control">
-                        <option value="">Todos</option>
-                        </select>
+                <div class="form-group">
+                    <label for="monto-mes">Monto Mensual Base:</label>
+                    <input type="number" id="monto-mes" step="0.01" value="0.00" readonly>
                 </div>
-                <div class="form-group flex-item">
-                    <label for="search-aportes-participant">Buscar (Nombre/Código):</label>
-                    <input type="text" id="search-aportes-participant" class="form-control" placeholder="Buscar aporte...">
+                <div class="form-group">
+                    <label>Meses a Registrar Pago:</label>
+                    <div id="meses-checkboxes" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px; border: 1px solid #ddd; padding: 10px; border-radius: 5px;">
+                        </div>
                 </div>
-                <div class="flex-item" style="display: flex; align-items: flex-end;">
-                    <button id="apply-aportes-filters" class="button">Aplicar Filtros</button>
+                <div class="form-group">
+                    <label for="fecha-registro">Fecha de Registro:</label>
+                    <input type="date" id="fecha-registro" required>
                 </div>
-            </div>
-            <div class="scrollable-content">
-                <table class="data-table responsive">
-                    <thead>
-                        <tr>
-                            <th>Fecha Registro</th>
-                            <th>Código Participante</th>
-                            <th>Nombre Participante</th>
-                            <th>Mes Pagado</th>
-                            <th>Año Pagado</th>
-                            <th>Monto</th>
-                            <th>Tutora</th>
-                        </tr>
-                    </thead>
-                    <tbody id="aportes-totales-table-body">
-                        </tbody>
-                </table>
-            </div>
-        </section>
-
-
-        <div id="payment-status-modal" class="modal">
-            <div class="modal-content">
-                <span class="close-button" id="close-payment-modal">&times;</span>
-                <h3>Estado de Pagos de <span id="modal-participant-name"></span></h3>
-                <div id="payment-status-grid-container" class="scrollable-content">
+                <div class="form-group">
+                    <label for="monto-total-registrado">Monto Total a Registrar (Calculado):</label>
+                    <input type="number" id="monto-total-registrado" step="0.01" value="0.00" readonly>
                 </div>
-            </div>
+                <button type="submit" class="button">Registrar Aporte</button>
+                <div id="register-message" class="message"></div>
+            </form>
         </div>
 
-        <div id="add-edit-participant-modal" class="modal">
-            <div class="modal-content">
-                <span class="close-button" id="close-add-edit-modal">&times;</span>
-                <h3 id="add-edit-modal-title">Añadir/Editar Participante</h3>
-                <form id="add-edit-participant-form">
-                    <input type="hidden" id="participant-id">
-                    <div class="form-group">
-                        <label for="participant-code">Código:</label>
-                        <input type="text" id="participant-code" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="participant-name">Nombre:</label>
-                        <input type="text" id="participant-name" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="participant-citizenship">Ciudadanía:</label>
-                        <select id="participant-citizenship" required>
-                            <option value="Colombiano">Colombiano</option>
-                            <option value="Venezolano">Venezolano</option>
-                            <option value="">Otro</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="participant-tutora">Tutora:</label>
-                        <select id="participant-tutora" required>
-                            </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="participant-monthly-amount">Monto a Pagar Mes (Calculado automáticamente):</label>
-                        <input type="number" id="participant-monthly-amount" step="0.01" disabled>
-                        <small>Este monto se calcula automáticamente basado en la fecha de ingreso.</small>
-                    </div>
-                    <div class="form-group">
-                        <label for="participant-entry-date">Fecha de Ingreso:</label>
-                        <input type="date" id="participant-entry-date" required>
-                    </div>
-                    <input type="hidden" id="participant-last-paid-month"> <input type="hidden" id="participant-abono-pendiente"> <div class="form-group">
-                        <label for="participant-status">Estado:</label>
-                        <select id="participant-status" required>
-                            <option value="Activo">Activo</option>
-                            <option value="Inactivo">Inactivo</option>
-                        </select>
-                    </div>
-                    <button type="submit" class="button">Guardar Participante</button>
-                    <div id="add-edit-participant-message" class="message hidden"></div>
-                </form>
+        <div id="aportes-participantes-module" class="module">
+            <h2>Gestión de Pagos por Participante</h2>
+            <div id="admin-search-participants" class="admin-only hidden">
+                <div class="form-group">
+                    <label for="search-input">Buscar Participante (Código o Nombre):</label>
+                    <input type="text" id="search-input" placeholder="Ej. A001 o Juan Pérez">
+                    <button class="button secondary" onclick="loadAllParticipants()">Buscar</button>
+                    <button class="button secondary" onclick="document.getElementById('search-input').value=''; loadAllParticipants();">Mostrar Todos</button>
+                </div>
             </div>
+            <div class="loading-spinner" id="participants-loading"></div>
+            <table class="data-table" id="all-participants-table">
+                <thead>
+                    <tr id="all-participants-table-headers">
+                        </tr>
+                </thead>
+                <tbody id="all-participants-table-body">
+                    <tr><td colspan="8">Cargando participantes...</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div id="manage-participants-module" class="module admin-only hidden">
+            <h2>Gestionar Participantes</h2>
+            <button class="button" onclick="openAddEditParticipantModal()">Añadir Nuevo Participante</button>
+            <div class="loading-spinner" id="admin-participants-loading"></div>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Código</th>
+                        <th>Nombre</th>
+                        <th>Tutora</th>
+                        <th>Estado</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="admin-participants-table-body">
+                    <tr><td colspan="5">Cargando participantes...</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div id="manage-users-module" class="module admin-only hidden">
+            <h2>Gestionar Usuarios</h2>
+            <button class="button" onclick="openAddEditUserModal()">Añadir Nuevo Usuario</button>
+            <div class="loading-spinner" id="users-loading"></div>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Usuario</th>
+                        <th>Rol</th>
+                        <th>Nombre Tutora (si aplica)</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="users-table-body">
+                    <tr><td colspan="4">Cargando usuarios...</td></tr>
+                </tbody>
+            </table>
         </div>
     </div>
 
+    <div id="tutora-payment-view" class="container hidden">
+        <h2>Mis Participantes</h2>
+        <p>Aquí puedes ver el estado de pago de tus participantes asignados.</p>
+        <div class="loading-spinner" id="tutora-participants-loading"></div>
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Código</th>
+                    <th>Participante</th>
+                    <th>Meses en Deuda</th>
+                    <th>Total a Pagar (al día)</th>
+                    <th>Acciones</th>
+                    <th>Compartir URL</th>
+                </tr>
+            </thead>
+            <tbody id="tutora-participantes-table-body">
+                <tr><td colspan="6">Cargando participantes...</td></tr>
+            </tbody>
+        </table>
+        <button id="tutora-logout-button" class="button secondary" style="margin-top: 20px;">Cerrar Sesión</button>
+    </div>
+
+
+    <div id="payment-status-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" onclick="closePaymentStatusModal()">&times;</span>
+            <h3 id="payment-status-title">Estado de Pagos de [Participante]</h3>
+            <div id="payment-status-grid" class="payment-status-grid-container">
+                </div>
+            <div id="modal-loading-spinner" class="loading-spinner"></div>
+            <div id="modal-message" class="message error"></div>
+        </div>
+    </div>
+
+    <div id="public-participant-view" class="container hidden">
+        <div class="public-view-header">
+            <img src="https://i.ibb.co/kH8S3zV/Logo-sin-fondo.png" alt="Logo de la ONG" style="max-width: 150px; margin-bottom: 15px;">
+            <h2>Estado de Pagos del Participante</h2>
+            <p id="public-participant-name-display">Cargando...</p>
+        </div>
+        <div id="public-payment-status-grid" class="public-payment-status-grid-container">
+            </div>
+        <div class="loading-spinner" id="public-loading-spinner"></div>
+        <div class="message error" id="public-error-message"></div>
+        <div style="text-align: center; margin-top: 30px; font-size: 0.9em; color: #777;">
+            <p>Para cualquier duda o aclaración, por favor contacte a su tutora.</p>
+        </div>
+    </div>
+
+    <div id="add-edit-participant-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" onclick="closeAddEditParticipantModal()">&times;</span>
+            <h3 id="participant-modal-title">Añadir/Editar Participante</h3>
+            <form id="participant-form">
+                <input type="hidden" id="participant-id">
+                <div class="form-group">
+                    <label for="participant-code">Código:</label>
+                    <input type="text" id="participant-code" required>
+                </div>
+                <div class="form-group">
+                    <label for="participant-name">Nombre:</label>
+                    <input type="text" id="participant-name" required>
+                </div>
+                <div class="form-group">
+                    <label for="participant-tutora">Tutora:</label>
+                    <input type="text" id="participant-tutora" list="tutoras-list" required>
+                    <datalist id="tutoras-list"></datalist>
+                </div>
+                <div class="form-group">
+                    <label for="participant-ciudadania">Ciudadanía:</label>
+                    <input type="text" id="participant-ciudadania">
+                </div>
+                <div class="form-group">
+                    <label for="participant-monto-mes">Monto a Pagar Mes:</label>
+                    <input type="number" id="participant-monto-mes" step="0.01" required>
+                </div>
+                <div class="form-group">
+                    <label for="participant-saldo-favor">Saldo a Favor:</label>
+                    <input type="number" id="participant-saldo-favor" step="0.01" value="0.00">
+                </div>
+                <div class="form-group">
+                    <label for="participant-last-paid-month">Último Mes Pago:</label>
+                    <input type="text" id="participant-last-paid-month" placeholder="Ej. Enero 2024">
+                </div>
+                <div class="form-group">
+                    <label for="participant-status">Estado:</label>
+                    <select id="participant-status">
+                        <option value="Activo">Activo</option>
+                        <option value="Inactivo">Inactivo</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="participant-fecha-ingreso">Fecha de Ingreso:</label>
+                    <input type="date" id="participant-fecha-ingreso" required>
+                </div>
+                <button type="submit" class="button">Guardar Participante</button>
+                <div id="participant-form-message" class="message"></div>
+            </form>
+        </div>
+    </div>
+
+    <div id="add-edit-user-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" onclick="closeAddEditUserModal()">&times;</span>
+            <h3 id="user-modal-title">Añadir/Editar Usuario</h3>
+            <form id="user-form">
+                <input type="hidden" id="user-id">
+                <div class="form-group">
+                    <label for="user-username">Usuario:</label>
+                    <input type="text" id="user-username" required>
+                </div>
+                <div class="form-group">
+                    <label for="user-password">Contraseña (dejar en blanco para no cambiar):</label>
+                    <input type="password" id="user-password">
+                </div>
+                <div class="form-group">
+                    <label for="user-role-select">Rol:</label>
+                    <select id="user-role-select" required onchange="toggleTutoraField()">
+                        <option value="administrador">Administrador</option>
+                        <option value="tutora">Tutora</option>
+                    </select>
+                </div>
+                <div class="form-group" id="user-tutora-group" style="display: none;">
+                    <label for="user-tutora-name">Nombre de Tutora (si aplica):</label>
+                    <input type="text" id="user-tutora-name">
+                </div>
+                <button type="submit" class="button">Guardar Usuario</button>
+                <div id="user-form-message" class="message"></div>
+            </form>
+        </div>
+    </div>
+
+
     <script>
-        // ¡IMPORTANTE! Reemplaza esta URL con la URL de despliegue de tu Google Apps Script
-        const APP_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwpDK1BbSBCnx-3q8qaSdeS4DG0IEadNEty1sUARIbR1w1ZWWvfGbpaMq1tghHaB9Kk/exec'; // e.g., 'https://script.google.com/macros/s/AKfycbwpDK1BbSBCnx-3q8qaSde...'
+        // REPLACE WITH YOUR DEPLOYED WEB APP URL
+        const APP_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwpDK1BbSBCnx-3q8qaSdeS4DG0IEadNEty1sUARIbR1w1ZWWvfGbpaMq1tghHaB9Kk/exec'; 
 
-        let currentUserRole = null;
-        let currentTutoraName = null;
-        let currentParticipants = []; // Store all participants for client-side filtering and details
-        let aportesMensualesChart;
-        let aportesTutoraChart;
+        let userRole = null;
+        let currentTutoraName = null; // To store the tutora's name on login
 
-        const months = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
-        const monthAbbreviations = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
+        // --- UI Element References ---
+        const loginModule = document.getElementById('login-module');
+        const mainApp = document.getElementById('main-app');
+        const publicParticipantView = document.getElementById('public-participant-view');
+        const tutoraPaymentView = document.getElementById('tutora-payment-view');
 
-        // Utility function to get contribution amount based on date
-        function getContributionAmount(date) {
-            const june2024 = new Date(2024, 5, 1); // June is month 5 (0-indexed)
-            if (date <= june2024) {
-                return 2000;
-            } else {
-                return 3000;
+        const loginForm = document.getElementById('login-form');
+        const loginMessage = document.getElementById('login-message');
+        const logoutButton = document.getElementById('logout-button');
+        const tutoraLogoutButton = document.getElementById('tutora-logout-button');
+
+        const welcomeMessage = document.getElementById('welcome-message');
+        const userRoleSpan = document.getElementById('user-role');
+        const loggedInUsernameSpan = document.getElementById('logged-in-username');
+
+        const adminTabs = document.getElementById('admin-tabs');
+
+        const dashboardModule = document.getElementById('dashboard-module');
+        const registerAportesModule = document.getElementById('register-aportes-module');
+        const aportesParticipantesModule = document.getElementById('aportes-participantes-module');
+        const manageParticipantsModule = document.getElementById('manage-participants-module');
+        const manageUsersModule = document.getElementById('manage-users-module');
+
+        const allParticipantsTableHeaders = document.getElementById('all-participants-table-headers');
+        const allParticipantsTableBody = document.getElementById('all-participants-table-body');
+
+        // Modals
+        const paymentStatusModal = document.getElementById('payment-status-modal');
+        const addEditParticipantModal = document.getElementById('add-edit-participant-modal');
+        const addEditUserModal = document.getElementById('add-edit-user-modal');
+
+        // --- Utility Functions ---
+        function showMessage(elementId, message, type = 'success') {
+            const element = document.getElementById(elementId);
+            element.textContent = message;
+            element.className = `message ${type}`;
+            element.style.display = 'block';
+        }
+
+        function hideMessage(elementId) {
+            document.getElementById(elementId).style.display = 'none';
+        }
+
+        function showLoading(elementId) {
+            const spinner = document.getElementById(elementId).closest('.module, .container, body').querySelector('.loading-spinner') || document.getElementById(elementId);
+            if (spinner && spinner.classList.contains('loading-spinner')) {
+                spinner.style.display = 'block';
+            } else if (spinner) { // Fallback if no specific spinner, show a generic one
+                 const genericSpinner = document.createElement('div');
+                 genericSpinner.className = 'loading-spinner';
+                 genericSpinner.id = 'generic-loading-spinner';
+                 document.body.appendChild(genericSpinner);
+                 genericSpinner.style.display = 'block';
             }
         }
 
-        // --- UI Control Functions ---
-        function showModule(moduleId) {
-            document.querySelectorAll('.module').forEach(module => {
-                module.classList.add('hidden');
-            });
-            document.getElementById(moduleId).classList.remove('hidden');
-
-            document.querySelectorAll('.nav-button').forEach(button => {
-                button.classList.remove('active');
-            });
-            document.querySelector(`button[data-module="${moduleId}"]`).classList.add('active');
+        function hideLoading(elementId) {
+            const spinner = document.getElementById(elementId).closest('.module, .container, body').querySelector('.loading-spinner') || document.getElementById('generic-loading-spinner');
+            if (spinner) {
+                spinner.style.display = 'none';
+            }
         }
 
-        function toggleAdminElements(show) {
-            document.querySelectorAll('.admin-only').forEach(el => {
-                if (show) {
-                    el.classList.remove('hidden');
-                } else {
-                    el.classList.add('hidden');
-                }
-            });
+        function formatDateForInput(dateString) {
+            if (!dateString) return '';
+            const date = new Date(dateString);
+            if (isNaN(date.getTime())) return '';
+            const year = date.getFullYear();
+            const month = (date.getMonth() + 1).toString().padStart(2, '0');
+            const day = date.getDate().toString().padStart(2, '0');
+            return `${year}-${month}-${day}`;
         }
 
-        function toggleTutoraElements(show) {
-            document.querySelectorAll('.tutora-only').forEach(el => {
-                if (show) {
-                    el.classList.remove('hidden');
-                } else {
-                    el.classList.add('hidden');
-                }
-            });
+        function getCurrentDateISO() {
+            const today = new Date();
+            const year = today.getFullYear();
+            const month = (today.getMonth() + 1).toString().padStart(2, '0');
+            const day = today.getDate().toString().padStart(2, '0');
+            return `${year}-${month}-${day}`;
         }
 
-        function showMessage(elementId, message, isSuccess) {
-            const messageElement = document.getElementById(elementId);
-            messageElement.textContent = message;
-            messageElement.classList.remove('hidden', 'success', 'error');
-            messageElement.classList.add(isSuccess ? 'success' : 'error');
-            setTimeout(() => messageElement.classList.add('hidden'), 5000);
-        }
+        // --- Login/Logout Logic ---
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            hideMessage('login-message');
+            showLoading('login-module'); // Show loading on the login module
 
-        // --- Login / Logout ---
-        document.getElementById('login-button').addEventListener('click', async () => {
             const username = document.getElementById('username').value;
             const password = document.getElementById('password').value;
 
             try {
-                const response = await fetch(`${APP_SCRIPT_URL}?action=doLogin&username=${encodeURIComponent(username)}&password=${encodeURIComponent(password)}`);
-                const data = await response.json();
+                const response = await google.script.run.withSuccessHandler(data => {
+                    hideLoading('login-module'); // Hide loading
+                    if (data.success) {
+                        userRole = data.user.role;
+                        currentTutoraName = data.user.tutoraName || null; // Store tutora name
+                        loggedInUsernameSpan.textContent = data.user.username;
+                        userRoleSpan.textContent = userRole.charAt(0).toUpperCase() + userRole.slice(1);
+                        welcomeMessage.textContent = `Bienvenido(a) ${data.user.username}`;
 
-                if (data.success) {
-                    currentUserRole = data.role;
-                    currentTutoraName = data.tutoraName;
-                    showMessage('login-message', data.message, true);
-                    document.getElementById('login-module').classList.add('hidden');
-                    document.getElementById('main-app').classList.remove('hidden');
+                        loginModule.classList.add('hidden');
+                        mainApp.classList.remove('hidden');
 
-                    if (currentUserRole === 'Admin') {
-                        toggleAdminElements(true);
-                        toggleTutoraElements(false);
-                    } else if (currentUserRole === 'Tutora') {
-                        toggleAdminElements(false);
-                        toggleTutoraElements(true);
-                    } else { // Handle other roles if any
-                        toggleAdminElements(false);
-                        toggleTutoraElements(false);
+                        // Handle module visibility based on role
+                        if (userRole === 'administrador') {
+                            adminTabs.classList.remove('hidden');
+                            document.querySelectorAll('.admin-only').forEach(el => el.classList.remove('hidden'));
+                            tutoraPaymentView.classList.add('hidden'); // Hide tutora view if admin
+                            showModule('dashboard-module'); // Default for admin
+                            loadDashboardData();
+                            loadParticipantsForRegistration(); // For admin's register tab
+                            loadAdminParticipantsForEdit(); // For admin's manage participant tab
+                            loadUsers(); // For admin's manage users tab
+                            loadAllParticipants(); // For admin's Ver Aportes - Participantes
+                        } else if (userRole === 'tutora') {
+                            adminTabs.classList.add('hidden');
+                            document.querySelectorAll('.admin-only').forEach(el => el.classList.add('hidden'));
+                            mainApp.classList.add('hidden'); // Hide main admin app structure
+                            tutoraPaymentView.classList.remove('hidden'); // Show dedicated tutora view
+                            loadTutoraParticipants(); // Load only her participants
+                        }
+                    } else {
+                        showMessage('login-message', data.message, 'error');
                     }
-
-                    // Initial loads
-                    loadDashboardData();
-                    loadTutorasForFilterAndRegistration();
-                    populateYearFilters(); // Populate year filters on login
-                    showModule('dashboard-module'); // Show dashboard by default
-                } else {
-                    showMessage('login-message', data.message, false);
-                }
+                }).withFailureHandler(error => {
+                    hideLoading('login-module'); // Hide loading
+                    console.error('Login error:', error);
+                    showMessage('login-message', 'Error de conexión o credenciales inválidas.', 'error');
+                }).doLogin(username, password);
             } catch (error) {
-                console.error("Error during login:", error);
-                showMessage('login-message', 'Error de conexión al servidor.', false);
+                hideLoading('login-module'); // Hide loading
+                console.error('Unexpected login error:', error);
+                showMessage('login-message', 'Error inesperado al intentar iniciar sesión.', 'error');
             }
         });
 
-        document.getElementById('nav-logout').addEventListener('click', () => {
-            currentUserRole = null;
+        function logout() {
+            userRole = null;
             currentTutoraName = null;
-            document.getElementById('main-app').classList.add('hidden');
-            document.getElementById('login-module').classList.remove('hidden');
+            loginModule.classList.remove('hidden');
+            mainApp.classList.add('hidden');
+            tutoraPaymentView.classList.add('hidden');
+            publicParticipantView.classList.add('hidden');
             document.getElementById('username').value = '';
             document.getElementById('password').value = '';
-            showMessage('login-message', 'Sesión cerrada exitosamente.', true);
-        });
+            hideMessage('login-message');
+            // Reset active tab for next admin login
+            document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+            document.querySelector('.tab-button').classList.add('active'); // First tab active
+        }
 
-        // --- Navigation ---
-        document.querySelectorAll('.nav-button').forEach(button => {
-            button.addEventListener('click', (e) => {
-                const moduleId = e.target.dataset.module;
-                if (moduleId) {
-                    showModule(moduleId);
-                    if (moduleId === 'dashboard-module') {
-                        loadDashboardData();
-                    } else if (moduleId === 'aportes-participantes-module') {
-                        if (currentUserRole === 'Admin') {
-                            loadAdminParticipantsForEdit();
-                        } else if (currentUserRole === 'Tutora') {
-                            loadTutoraParticipants();
-                        }
-                    } else if (moduleId === 'registrar-aporte-module') {
-                        loadParticipantsForRegistration();
-                        resetRegisterAporteForm();
-                    } else if (moduleId === 'add-edit-participant-module') {
-                        loadAdminParticipantsForEdit();
-                        populateTutorasForAddEdit();
-                    } else if (moduleId === 'aportes-totales-module') {
-                        loadAllAportes();
-                    }
-                }
+        logoutButton.addEventListener('click', logout);
+        tutoraLogoutButton.addEventListener('click', logout); // Logout button for tutora view
+
+        // --- Module Management ---
+        function showModule(moduleId) {
+            document.querySelectorAll('.module').forEach(module => {
+                module.classList.remove('active');
             });
-        });
+            document.getElementById(moduleId).classList.add('active');
 
-        // --- Dashboard Module ---
-        async function loadDashboardData() {
-            try {
-                const response = await fetch(`${APP_SCRIPT_URL}?action=getDashboardSummary`);
-                const data = await response.json();
-
-                if (data.success) {
-                    document.getElementById('total-aportes-mes').textContent = `$${data.totalAportesMes.toFixed(2)}`;
-                    document.getElementById('total-participantes').textContent = data.totalParticipantes;
-                    document.getElementById('total-pendientes').textContent = `$${data.totalPendiente.toFixed(2)}`;
-                    document.getElementById('ultimo-aporte').textContent = data.ultimoAporte ? `${data.ultimoAporte.Participante} - $${data.ultimoAporte.Monto.toFixed(2)} (${data.ultimoAporte.Fecha})` : 'N/A';
-                    
-                    renderUltimos10Aportes(data.ultimos10Aportes);
-                    renderAportesMensualesChart(data.aportesMensuales);
-                    renderAportesTutoraChart(data.aportesPorTutora);
+            document.querySelectorAll('.tab-button').forEach(btn => {
+                if (btn.onclick.toString().includes(`showModule('${moduleId}')`)) {
+                    btn.classList.add('active');
                 } else {
-                    showMessage('dashboard-message', `Error al cargar dashboard: ${data.message}`, false);
+                    btn.classList.remove('active');
                 }
-            } catch (error) {
-                console.error("Error loading dashboard data:", error);
-                showMessage('dashboard-message', 'Error de conexión al servidor al cargar dashboard.', false);
-            }
-        }
-
-        function renderUltimos10Aportes(aportes) {
-            const tableBody = document.getElementById('ultimos-aportes-table-body');
-            tableBody.innerHTML = '';
-            if (aportes && aportes.length > 0) {
-                aportes.forEach(aporte => {
-                    const row = tableBody.insertRow();
-                    row.insertCell().textContent = aporte.Fecha;
-                    row.insertCell().textContent = aporte.Participante;
-                    row.insertCell().textContent = `$${aporte.Monto.toFixed(2)}`;
-                    row.insertCell().textContent = aporte.Tutora;
-                });
-            } else {
-                const row = tableBody.insertRow();
-                const cell = row.insertCell();
-                cell.colSpan = 4;
-                cell.textContent = 'No hay aportes recientes.';
-                cell.classList.add('text-center');
-            }
-        }
-
-        function renderAportesMensualesChart(data) {
-            const ctx = document.getElementById('aportesMensualesChart').getContext('2d');
-            const labels = Object.keys(data).sort((a,b) => {
-                const [monthA, yearA] = a.split('. ');
-                const [monthB, yearB] = b.split('. ');
-                const dateA = new Date(`${monthA} 1, ${yearA}`);
-                const dateB = new Date(`${monthB} 1, ${yearB}`);
-                return dateA - dateB;
             });
-            const values = labels.map(label => data[label]);
 
-            if (aportesMensualesChart) {
-                aportesMensualesChart.destroy();
+            // Specific module loading
+            if (moduleId === 'dashboard-module') {
+                loadDashboardData();
+            } else if (moduleId === 'register-aportes-module') {
+                loadParticipantsForRegistration();
+                document.getElementById('fecha-registro').value = getCurrentDateISO();
+            } else if (moduleId === 'aportes-participantes-module') {
+                // This module is shared, decide what to load based on role
+                if (userRole === 'administrador') {
+                    document.getElementById('admin-search-participants').classList.remove('hidden');
+                    loadAllParticipants(); // For admin, load all (with search)
+                } else if (userRole === 'tutora') {
+                    // This scenario should now be handled by tutora-payment-view directly
+                    // but if it ever becomes accessible, ensure it still filters
+                    document.getElementById('admin-search-participants').classList.add('hidden');
+                    loadTutoraParticipants(); // For tutora, load only hers
+                }
+            } else if (moduleId === 'manage-participants-module') {
+                loadAdminParticipantsForEdit();
+                loadTutorasForParticipantForm(); // Load tutoras for the datalist
+            } else if (moduleId === 'manage-users-module') {
+                loadUsers();
             }
+        }
 
-            aportesMensualesChart = new Chart(ctx, {
+
+        // --- Dashboard Functions (Admin Only) ---
+        async function loadDashboardData() {
+            showLoading('dashboard-loading');
+            try {
+                const response = await google.script.run.withSuccessHandler(data => {
+                    hideLoading('dashboard-loading');
+                    if (data.success) {
+                        document.getElementById('total-active-participants').textContent = data.dashboard.totalActiveParticipants;
+                        document.getElementById('total-debt-participants').textContent = data.dashboard.totalParticipantsInDebt;
+                        document.getElementById('total-debt-amount').textContent = `$${data.dashboard.totalDebtAmount.toFixed(2)}`;
+                        document.getElementById('total-aportado-year').textContent = `$${data.dashboard.totalAportadoThisYear.toFixed(2)}`;
+                        
+                        updateParticipantsByTutoraChart(data.dashboard.participantsByTutora);
+                        updateDebtStatusChart(data.dashboard.debtStatus);
+                    } else {
+                        showMessage('dashboard-loading', `Error al cargar dashboard: ${data.message}`, 'error');
+                    }
+                }).withFailureHandler(error => {
+                    hideLoading('dashboard-loading');
+                    console.error('Error al cargar dashboard:', error);
+                    showMessage('dashboard-loading', 'Error de conexión al cargar el dashboard.', 'error');
+                }).getDashboardData();
+            } catch (error) {
+                hideLoading('dashboard-loading');
+                console.error('Unexpected error in loadDashboardData:', error);
+                showMessage('dashboard-loading', 'Error inesperado al cargar el dashboard.', 'error');
+            }
+        }
+
+        let participantsByTutoraChart;
+        function updateParticipantsByTutoraChart(data) {
+            const ctx = document.getElementById('participantsByTutoraChart').getContext('2d');
+            const labels = data.map(item => item.tutora || 'Sin Asignar');
+            const counts = data.map(item => item.count);
+
+            if (participantsByTutoraChart) {
+                participantsByTutoraChart.destroy();
+            }
+            participantsByTutoraChart = new Chart(ctx, {
                 type: 'bar',
                 data: {
                     labels: labels,
                     datasets: [{
-                        label: 'Aportes Mensuales',
-                        data: values,
-                        backgroundColor: 'rgba(0, 123, 255, 0.5)',
+                        label: 'Número de Participantes',
+                        data: counts,
+                        backgroundColor: 'rgba(0, 123, 255, 0.7)',
                         borderColor: 'rgba(0, 123, 255, 1)',
                         borderWidth: 1
                     }]
                 },
                 options: {
                     responsive: true,
-                    maintainAspectRatio: false, // Important for responsive height
                     scales: {
                         y: {
-                            beginAtZero: true
+                            beginAtZero: true,
+                            ticks: {
+                                precision: 0
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
                         }
                     }
                 }
             });
         }
 
-        function renderAportesTutoraChart(data) {
-            const ctx = document.getElementById('aportesTutoraChart').getContext('2d');
-            const labels = Object.keys(data);
-            const values = labels.map(label => data[label]);
+        let debtStatusChart;
+        function updateDebtStatusChart(data) {
+            const ctx = document.getElementById('debtStatusChart').getContext('2d');
+            const labels = ['Al Día', 'En Deuda'];
+            const counts = [data.alDia, data.enDeuda];
 
-            if (aportesTutoraChart) {
-                aportesTutoraChart.destroy();
+            if (debtStatusChart) {
+                debtStatusChart.destroy();
             }
-
-            aportesTutoraChart = new Chart(ctx, {
+            debtStatusChart = new Chart(ctx, {
                 type: 'pie',
                 data: {
                     labels: labels,
                     datasets: [{
-                        label: 'Aportes por Tutora',
-                        data: values,
-                        backgroundColor: [
-                            'rgba(255, 99, 132, 0.5)',
-                            'rgba(54, 162, 235, 0.5)',
-                            'rgba(255, 206, 86, 0.5)',
-                            'rgba(75, 192, 192, 0.5)',
-                            'rgba(153, 102, 255, 0.5)',
-                            'rgba(255, 159, 64, 0.5)'
-                        ],
-                        borderColor: [
-                            'rgba(255, 99, 132, 1)',
-                            'rgba(54, 162, 235, 1)',
-                            'rgba(255, 206, 86, 1)',
-                            'rgba(75, 192, 192, 1)',
-                            'rgba(153, 102, 255, 1)',
-                            'rgba(255, 159, 64, 1)'
-                        ],
-                        borderWidth: 1
+                        label: 'Estado de Deuda',
+                        data: counts,
+                        backgroundColor: ['#28a745', '#dc3545'], // Green for al día, Red for en deuda
+                        hoverOffset: 4
                     }]
                 },
                 options: {
                     responsive: true,
-                    maintainAspectRatio: false, // Important for responsive height
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        }
+                    }
                 }
             });
         }
 
-        // --- "Aportes - Participantes" Module ---
-        function populateYearFilters() {
-            const currentYear = new Date().getFullYear();
-            const startYear = 2022; // As per user's system description
 
-            const filterYearSelect = document.getElementById('filter-year');
-            const filterAportesYearSelect = document.getElementById('filter-aportes-year');
-            
-            filterYearSelect.innerHTML = '<option value="">Todos</option>';
-            filterAportesYearSelect.innerHTML = '<option value="">Todos</option>';
+        // --- Register Aportes Functions (Admin Only) ---
+        const participanteSelect = document.getElementById('participante-select');
+        const mesesCheckboxes = document.getElementById('meses-checkboxes');
+        const montoMesInput = document.getElementById('monto-mes');
+        const montoTotalRegistradoInput = document.getElementById('monto-total-registrado');
+        const registroAporteForm = document.getElementById('registro-aporte-form');
 
-            for (let year = currentYear + 1; year >= startYear; year--) {
-                const option1 = document.createElement('option');
-                option1.value = year;
-                option1.textContent = year;
-                filterYearSelect.appendChild(option1);
-
-                const option2 = document.createElement('option');
-                option2.value = year;
-                option2.textContent = year;
-                filterAportesYearSelect.appendChild(option2);
-            }
-        }
-
-        async function loadAdminParticipantsForEdit() {
-            const filterTutora = document.getElementById('filter-tutora').value;
-            const searchParticipant = document.getElementById('search-participant').value;
-            const filterMonth = document.getElementById('filter-month').value;
-            const filterYear = document.getElementById('filter-year').value;
-
+        async function loadParticipantsForRegistration() {
+            showLoading('participante-select');
             try {
-                const url = `${APP_SCRIPT_URL}?action=getAllParticipants&tutoraName=${encodeURIComponent(filterTutora)}&searchFilter=${encodeURIComponent(searchParticipant)}&filterMonth=${encodeURIComponent(filterMonth)}&filterYear=${encodeURIComponent(filterYear)}`;
-                const response = await fetch(url);
-                const data = await response.json();
-
-                if (data.success) {
-                    currentParticipants = data.participants; // Store all participants
-                    renderParticipantsTable(data.participants, 'admin-participants-table-body', 'Admin');
-                } else {
-                    showMessage('admin-payment-view-message', `Error al cargar participantes: ${data.message}`, false);
-                }
+                const response = await google.script.run.withSuccessHandler(data => {
+                    hideLoading('participante-select');
+                    participanteSelect.innerHTML = '<option value="">Selecciona un participante</option>';
+                    if (data.success && data.participants.length > 0) {
+                        data.participants.forEach(p => {
+                            const option = document.createElement('option');
+                            option.value = p.ID;
+                            option.textContent = `${p.Nombre} (Código: ${p.Código})`;
+                            participanteSelect.appendChild(option);
+                        });
+                    } else {
+                        participanteSelect.innerHTML = '<option value="">No se encontraron participantes.</option>';
+                    }
+                }).withFailureHandler(error => {
+                    hideLoading('participante-select');
+                    console.error('Error al cargar participantes para registro:', error);
+                    participanteSelect.innerHTML = '<option value="">Error al cargar participantes.</option>';
+                }).getAllParticipants(); // Admin gets all participants
             } catch (error) {
-                console.error("Error loading admin participants:", error);
-                showMessage('admin-payment-view-message', 'Error de conexión al servidor al cargar participantes.', false);
+                hideLoading('participante-select');
+                console.error('Unexpected error in loadParticipantsForRegistration:', error);
+                participanteSelect.innerHTML = '<option value="">Error inesperado.</option>';
             }
         }
 
-        async function loadTutoraParticipants() {
-            const searchParticipant = document.getElementById('search-participant').value;
-            const filterMonth = document.getElementById('filter-month').value;
-            const filterYear = document.getElementById('filter-year').value;
+        participanteSelect.addEventListener('change', async () => {
+            const participantId = participanteSelect.value;
+            mesesCheckboxes.innerHTML = ''; // Clear previous months
+            montoMesInput.value = '0.00';
+            montoTotalRegistradoInput.value = '0.00';
+            hideMessage('register-message');
+
+            if (!participantId) return;
+
+            showLoading('meses-checkboxes');
             try {
-                const url = `${APP_SCRIPT_URL}?action=getAllParticipants&tutoraName=${encodeURIComponent(currentTutoraName)}&searchFilter=${encodeURIComponent(searchParticipant)}&filterMonth=${encodeURIComponent(filterMonth)}&filterYear=${encodeURIComponent(filterYear)}`;
-                const response = await fetch(url);
-                const data = await response.json();
+                const response = await google.script.run.withSuccessHandler(data => {
+                    hideLoading('meses-checkboxes');
+                    if (data.success && data.details) {
+                        montoMesInput.value = data.details.MontoAPagarMes.toFixed(2);
+                        const lastPaidDate = data.details.UltimoMesPago ? new Date(data.details.UltimoMesPago + ' 1, 00:00:00') : null;
+                        
+                        const currentDate = new Date();
+                        let startDate = lastPaidDate ? new Date(lastPaidDate.getFullYear(), lastPaidDate.getMonth() + 1, 1) : new Date(new Date(data.details.FechaDeIngreso).getFullYear(), new Date(data.details.FechaDeIngreso).getMonth(), 1);
 
-                if (data.success) {
-                    currentParticipants = data.participants; // Store all participants
-                    renderParticipantsTable(data.participants, 'tutora-participantes-table-body', 'Tutora');
-                } else {
-                    showMessage('tutora-payment-view-message', `Error al cargar mis participantes: ${data.message}`, false);
-                }
+                        // Ensure startDate is not in the future beyond current month
+                        if (startDate.getFullYear() > currentDate.getFullYear() || 
+                           (startDate.getFullYear() === currentDate.getFullYear() && startDate.getMonth() > currentDate.getMonth())) {
+                            startDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+                        }
+
+
+                        const months = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
+                        let tempDate = new Date(startDate);
+                        let i = 0;
+                        while ((tempDate.getFullYear() < currentDate.getFullYear() || (tempDate.getFullYear() === currentDate.getFullYear() && tempDate.getMonth() <= currentDate.getMonth())) && i < 36) { // Limit to 3 years max
+                            const monthName = months[tempDate.getMonth()];
+                            const year = tempDate.getFullYear();
+                            const monthValue = `${monthName} ${year}`;
+
+                            const checkboxDiv = document.createElement('div');
+                            const checkbox = document.createElement('input');
+                            checkbox.type = 'checkbox';
+                            checkbox.id = `month-${monthName}-${year}`;
+                            checkbox.value = monthValue;
+                            checkbox.dataset.year = year; // Store year for sorting/grouping if needed
+                            checkbox.dataset.month = tempDate.getMonth(); // Store month index
+
+                            const label = document.createElement('label');
+                            label.htmlFor = `month-${monthName}-${year}`;
+                            label.textContent = monthValue;
+
+                            checkboxDiv.appendChild(checkbox);
+                            checkboxDiv.appendChild(label);
+                            mesesCheckboxes.appendChild(checkboxDiv);
+
+                            tempDate.setMonth(tempDate.getMonth() + 1);
+                            i++;
+                        }
+                        mesesCheckboxes.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+                            cb.addEventListener('change', calculateTotalMonto);
+                        });
+                        calculateTotalMonto(); // Initial calculation
+                    } else {
+                        mesesCheckboxes.innerHTML = '<p>No se pudieron cargar los detalles del participante.</p>';
+                    }
+                }).withFailureHandler(error => {
+                    hideLoading('meses-checkboxes');
+                    console.error('Error al cargar detalles del participante:', error);
+                    mesesCheckboxes.innerHTML = '<p>Error al cargar meses para el participante.</p>';
+                }).getParticipantDetails(participantId);
             } catch (error) {
-                console.error("Error loading tutora participants:", error);
-                showMessage('tutora-payment-view-message', 'Error de conexión al servidor al cargar mis participantes.', false);
-            }
-        }
-
-        function renderParticipantsTable(participants, tableBodyId, role) {
-            const tableBody = document.getElementById(tableBodyId);
-            tableBody.innerHTML = '';
-            if (participants && participants.length > 0) {
-                participants.forEach(p => {
-                    const row = tableBody.insertRow();
-                    row.setAttribute('data-id', p.id);
-                    row.insertCell().setAttribute('data-label', 'Código'); row.cells[0].textContent = p.codigo;
-                    row.insertCell().setAttribute('data-label', 'Participante'); row.cells[1].textContent = p.nombre;
-                    row.insertCell().setAttribute('data-label', 'Ciudadanía'); row.cells[2].textContent = p.ciudadania;
-                    if (role === 'Admin') {
-                        row.insertCell().setAttribute('data-label', 'Tutora'); row.cells[3].textContent = p.tutora;
-                    }
-                    row.insertCell().setAttribute('data-label', 'Último Mes Pago'); row.cells[role === 'Admin' ? 4 : 3].textContent = p.ultimoMesPago || 'N/A';
-                    row.insertCell().setAttribute('data-label', 'Meses en Deuda'); row.cells[role === 'Admin' ? 5 : 4].textContent = p.mesesEnDeuda;
-                    row.insertCell().setAttribute('data-label', 'Total a Pagar (al día)'); row.cells[role === 'Admin' ? 6 : 5].textContent = `$${p.totalAPagar.toFixed(2)}`;
-                    row.insertCell().setAttribute('data-label', 'Abono Pendiente'); row.cells[role === 'Admin' ? 7 : 6].textContent = `$${p.abonoPendiente.toFixed(2)}`;
-
-                    const actionsCell = row.insertCell();
-                    actionsCell.setAttribute('data-label', 'Acciones');
-                    const viewPaymentsButton = document.createElement('button');
-                    viewPaymentsButton.textContent = 'Ver Pagos';
-                    viewPaymentsButton.classList.add('button', 'secondary', 'small-button');
-                    viewPaymentsButton.onclick = () => openPaymentStatusModal(p.id);
-                    actionsCell.appendChild(viewPaymentsButton);
-
-                    if (role === 'Admin') {
-                        const editButton = document.createElement('button');
-                        editButton.textContent = 'Editar';
-                        editButton.classList.add('button', 'small-button');
-                        editButton.onclick = () => openAddEditParticipantModal(p.id);
-                        actionsCell.appendChild(editButton);
-
-                        const deleteButton = document.createElement('button');
-                        deleteButton.textContent = 'Eliminar';
-                        deleteButton.classList.add('button', 'danger', 'small-button');
-                        deleteButton.onclick = () => deleteParticipant(p.id, p.nombre);
-                        actionsCell.appendChild(deleteButton);
-                    } else if (role === 'Tutora') {
-                        const shareUrlCell = row.insertCell();
-                        shareUrlCell.setAttribute('data-label', 'Compartir URL');
-                        const shareButton = document.createElement('button');
-                        shareButton.textContent = 'Compartir';
-                        shareButton.classList.add('button', 'secondary', 'small-button');
-                        shareButton.onclick = () => shareParticipantUrl(p.id);
-                        shareUrlCell.appendChild(shareButton);
-                    }
-                });
-            } else {
-                const row = tableBody.insertRow();
-                const cell = row.insertCell();
-                cell.colSpan = role === 'Admin' ? 9 : 8;
-                cell.textContent = 'No hay participantes para mostrar.';
-                cell.classList.add('text-center');
-            }
-            // Add responsive class to the table
-            document.querySelector(`#${tableBodyId}`).closest('table').classList.add('responsive');
-        }
-
-        document.getElementById('apply-filters').addEventListener('click', () => {
-            if (currentUserRole === 'Admin') {
-                loadAdminParticipantsForEdit();
-            } else if (currentUserRole === 'Tutora') {
-                loadTutoraParticipants();
+                hideLoading('meses-checkboxes');
+                console.error('Unexpected error in participant select change:', error);
+                mesesCheckboxes.innerHTML = '<p>Error inesperado al cargar meses.</p>';
             }
         });
+
+        function calculateTotalMonto() {
+            const montoPerMonth = parseFloat(montoMesInput.value);
+            let totalSelectedMonths = 0;
+            mesesCheckboxes.querySelectorAll('input[type="checkbox"]:checked').forEach(() => {
+                totalSelectedMonths++;
+            });
+            montoTotalRegistradoInput.value = (totalSelectedMonths * montoPerMonth).toFixed(2);
+        }
+
+        registroAporteForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            hideMessage('register-message');
+            showLoading('registro-aporte-form');
+
+            const participantId = participanteSelect.value;
+            const selectedMonthsData = Array.from(mesesCheckboxes.querySelectorAll('input[type="checkbox"]:checked'))
+                                         .map(cb => cb.value);
+            const montoPerMonthBase = parseFloat(montoMesInput.value);
+            const montoTotalRegistered = parseFloat(montoTotalRegistradoInput.value);
+            const fechaRegistro = document.getElementById('fecha-registro').value;
+            const registeredBy = loggedInUsernameSpan.textContent;
+
+            if (!participantId || selectedMonthsData.length === 0 || isNaN(montoPerMonthBase) || isNaN(montoTotalRegistered) || !fechaRegistro) {
+                showMessage('register-message', 'Por favor, completa todos los campos requeridos y selecciona al menos un mes.', 'error');
+                hideLoading('registro-aporte-form');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${APP_SCRIPT_URL}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: new URLSearchParams({
+                        action: 'registerAporte',
+                        participantId: participantId,
+                        selectedMonthsData: JSON.stringify(selectedMonthsData), // Stringify the array
+                        montoPerMonthBase: montoPerMonthBase,
+                        montoTotalRegistered: montoTotalRegistered,
+                        fechaRegistro: fechaRegistro,
+                        registeredBy: registeredBy
+                    }).toString()
+                });
+                const data = await response.json();
+
+                if (data.success) {
+                    showMessage('register-message', data.message, 'success');
+                    registroAporteForm.reset();
+                    mesesCheckboxes.innerHTML = '';
+                    montoMesInput.value = '0.00';
+                    montoTotalRegistradoInput.value = '0.00';
+                    document.getElementById('fecha-registro').value = getCurrentDateISO();
+                    loadParticipantsForRegistration(); // Reload participant list to reflect changes
+                    loadDashboardData(); // Update dashboard
+                    loadAllParticipants(); // Update main participant table
+                } else {
+                    showMessage('register-message', `Error al registrar aporte: ${data.message}`, 'error');
+                }
+            } catch (error) {
+                console.error("Error al registrar aporte:", error);
+                showMessage('register-message', 'Error de conexión al servidor al intentar registrar el aporte.', 'error');
+            } finally {
+                hideLoading('registro-aporte-form');
+            }
+        });
+
+        // --- View Aportes - Participants (Admin & Tutora) ---
+        const searchInput = document.getElementById('search-input');
+
+        async function loadAllParticipants() {
+            showLoading('participants-loading');
+            const searchFilter = searchInput.value;
+            // Admin always requests all, then filters if needed
+            const tutoraFilter = userRole === 'tutora' ? currentTutoraName : ''; 
+
+            try {
+                const response = await google.script.run.withSuccessHandler(data => {
+                    hideLoading('participants-loading');
+                    allParticipantsTableBody.innerHTML = '';
+                    
+                    // Set dynamic headers
+                    if (userRole === 'administrador') {
+                        allParticipantsTableHeaders.innerHTML = `
+                            <th>Código</th>
+                            <th>Participante</th>
+                            <th>Tutora</th>
+                            <th>Ciudadanía</th>
+                            <th>Último Mes Pago</th>
+                            <th>Meses en Deuda</th>
+                            <th>Total a Pagar (al día)</th>
+                            <th>Acciones</th>
+                            <th>Compartir URL</th>
+                        `;
+                    } else if (userRole === 'tutora') {
+                         allParticipantsTableHeaders.innerHTML = `
+                            <th>Código</th>
+                            <th>Participante</th>
+                            <th>Meses en Deuda</th>
+                            <th>Total a Pagar (al día)</th>
+                            <th>Acciones</th>
+                            <th>Compartir URL</th>
+                        `;
+                    }
+
+                    if (data.success && data.participants.length > 0) {
+                        data.participants.forEach(p => {
+                            const row = allParticipantsTableBody.insertRow();
+                            row.insertCell(0).textContent = p.Código;
+                            row.insertCell(1).textContent = p.Nombre;
+                            
+                            if (userRole === 'administrador') {
+                                row.insertCell(2).textContent = p.Tutora;
+                                row.insertCell(3).textContent = p.Ciudadanía;
+                                row.insertCell(4).textContent = p.UltimoMesPago;
+                                row.insertCell(5).textContent = p.MesesEnDeuda;
+                                row.insertCell(6).textContent = `$${p.TotalAPagar.toFixed(2)}`;
+                                const actionsCell = row.insertCell(7);
+                                const shareCell = row.insertCell(8);
+
+                                const viewButton = document.createElement('button');
+                                viewButton.textContent = 'Ver Pagos';
+                                viewButton.className = 'button secondary';
+                                viewButton.onclick = () => openPaymentStatusModal(p.ID, p.Nombre);
+                                actionsCell.appendChild(viewButton);
+
+                                const shareButton = document.createElement('button');
+                                shareButton.textContent = 'Compartir URL';
+                                shareButton.className = 'button secondary';
+                                shareButton.onclick = () => generateAndSharePublicUrl(p.ID);
+                                shareCell.appendChild(shareButton);
+
+                            } else if (userRole === 'tutora') {
+                                // This section is now technically handled by loadTutoraParticipants()
+                                // but if this module were ever to be re-used for tutors directly
+                                // it would follow this simplified structure.
+                                row.insertCell(2).textContent = p.MesesEnDeuda; // Meses en Deuda
+                                row.insertCell(3).textContent = `$${p.TotalAPagar.toFixed(2)}`; // Total a Pagar (lo que debe)
+                                const actionsCell = row.insertCell(4);
+                                const shareCell = row.insertCell(5);
+
+                                const viewButton = document.createElement('button');
+                                viewButton.textContent = 'Ver Pagos';
+                                viewButton.className = 'button secondary';
+                                viewButton.onclick = () => openPaymentStatusModal(p.ID, p.Nombre);
+                                actionsCell.appendChild(viewButton);
+
+                                const shareButton = document.createElement('button');
+                                shareButton.textContent = 'Compartir URL';
+                                shareButton.className = 'button secondary';
+                                shareButton.onclick = () => generateAndSharePublicUrl(p.ID);
+                                shareCell.appendChild(shareButton);
+                            }
+                        });
+                    } else {
+                        allParticipantsTableBody.innerHTML = `<tr><td colspan="${userRole === 'administrador' ? 9 : 6}">No se encontraron participantes.</td></tr>`;
+                    }
+                }).withFailureHandler(error => {
+                    hideLoading('participants-loading');
+                    console.error('Error al cargar participantes:', error);
+                    allParticipantsTableBody.innerHTML = `<tr><td colspan="${userRole === 'administrador' ? 9 : 6}" class="message error">Error al cargar participantes: ${error.message}</td></tr>`;
+                }).getAllParticipants(tutoraFilter, searchFilter);
+            } catch (error) {
+                hideLoading('participants-loading');
+                console.error('Unexpected error in loadAllParticipants:', error);
+                allParticipantsTableBody.innerHTML = `<tr><td colspan="${userRole === 'administrador' ? 9 : 6}" class="message error">Error inesperado: ${error.message}</td></tr>`;
+            }
+        }
+
+        searchInput.addEventListener('input', () => {
+            // Optional: Auto-search on input, or wait for button click
+            // For now, it's triggered by the button click to avoid too many requests
+        });
+
+
+        // --- Tutora Specific Participant View ---
+        async function loadTutoraParticipants() {
+            showLoading('tutora-participants-loading');
+            try {
+                // Pass currentTutoraName directly to filter in the backend
+                const response = await google.script.run.withSuccessHandler(data => {
+                    hideLoading('tutora-participants-loading');
+                    const tableBody = document.getElementById('tutora-participantes-table-body');
+                    tableBody.innerHTML = '';
+                    if (data.success && data.participants.length > 0) {
+                        data.participants.forEach(p => {
+                            const row = tableBody.insertRow();
+                            row.insertCell(0).textContent = p.Código;
+                            row.insertCell(1).textContent = p.Nombre;
+                            row.insertCell(2).textContent = p.MesesEnDeuda;
+                            row.insertCell(3).textContent = `$${p.TotalAPagar.toFixed(2)}`;
+
+                            const actionsCell = row.insertCell(4);
+                            const viewButton = document.createElement('button');
+                            viewButton.textContent = 'Ver Pagos';
+                            viewButton.className = 'button secondary';
+                            viewButton.onclick = () => openPaymentStatusModal(p.ID, p.Nombre);
+                            actionsCell.appendChild(viewButton);
+
+                            const shareCell = row.insertCell(5);
+                            const shareButton = document.createElement('button');
+                            shareButton.textContent = 'Compartir URL';
+                            shareButton.className = 'button secondary';
+                            shareButton.onclick = () => generateAndSharePublicUrl(p.ID);
+                            shareCell.appendChild(shareButton);
+                        });
+                    } else {
+                        tableBody.innerHTML = '<tr><td colspan="6">No se encontraron participantes asociados a tu nombre de tutora.</td></tr>';
+                    }
+                }).withFailureHandler(error => {
+                    hideLoading('tutora-participants-loading');
+                    console.error('Error al cargar participantes de tutora:', error);
+                    document.getElementById('tutora-participantes-table-body').innerHTML = `<tr><td colspan="6" class="message error">Error al cargar participantes: ${error.message}</td></tr>`;
+                }).getAllParticipants(currentTutoraName, ''); // Pass tutoraName and empty search filter
+            } catch (error) {
+                console.error('Error en loadTutoraParticipants:', error);
+                document.getElementById('tutora-participantes-table-body').innerHTML = `<tr><td colspan="6" class="message error">Error inesperado: ${error.message}</td></tr>`;
+            }
+        }
 
 
         // --- Payment Status Modal ---
-        const paymentStatusModal = document.getElementById('payment-status-modal');
-        const closePaymentModalButton = document.getElementById('close-payment-modal');
+        function openPaymentStatusModal(participantId, participantName) {
+            document.getElementById('payment-status-title').textContent = `Estado de Pagos de ${participantName}`;
+            document.getElementById('payment-status-grid').innerHTML = ''; // Clear previous content
+            paymentStatusModal.style.display = 'flex'; // Use flex for centering
+            loadPaymentStatus(participantId, 'payment-status-grid', 'modal-loading-spinner', 'modal-message');
+        }
 
-        closePaymentModalButton.addEventListener('click', () => {
+        function closePaymentStatusModal() {
             paymentStatusModal.style.display = 'none';
-        });
+        }
 
-        window.addEventListener('click', (event) => {
-            if (event.target == paymentStatusModal) {
-                paymentStatusModal.style.display = 'none';
-            }
-        });
-
-        async function openPaymentStatusModal(participantId) {
+        async function loadPaymentStatus(participantId, gridElementId, loadingElementId, messageElementId) {
+            showLoading(loadingElementId);
+            hideMessage(messageElementId);
             try {
-                const response = await fetch(`${APP_SCRIPT_URL}?action=getParticipantPaymentStatus&participantId=${encodeURIComponent(participantId)}`);
-                const data = await response.json();
-
-                if (data.success) {
-                    document.getElementById('modal-participant-name').textContent = data.participantName;
-                    renderPaymentStatusGrid(data.paymentStatus, 'payment-status-grid-container');
-                    paymentStatusModal.style.display = 'block';
-                } else {
-                    alert(`Error al cargar estado de pagos: ${data.message}`);
-                }
+                const response = await google.script.run.withSuccessHandler(data => {
+                    hideLoading(loadingElementId);
+                    if (data.success && data.paymentStatus) {
+                        displayPaymentStatusGrid(data.paymentStatus, gridElementId);
+                    } else {
+                        showMessage(messageElementId, `Error: ${data.message || 'No se pudo cargar el estado de pagos.'}`, 'error');
+                    }
+                }).withFailureHandler(error => {
+                    hideLoading(loadingElementId);
+                    console.error('Error loading payment status:', error);
+                    showMessage(messageElementId, `Error de conexión: ${error.message}`, 'error');
+                }).getPaymentStatus(participantId);
             } catch (error) {
-                console.error("Error fetching payment status:", error);
-                alert('Error de conexión al servidor al cargar estado de pagos.');
+                hideLoading(loadingElementId);
+                console.error('Unexpected error in loadPaymentStatus:', error);
+                showMessage(messageElementId, `Error inesperado: ${error.message}`, 'error');
             }
         }
 
-        function renderPaymentStatusGrid(paymentStatus, containerId) {
-            const container = document.getElementById(containerId);
-            container.innerHTML = '';
+        function displayPaymentStatusGrid(paymentStatus, gridElementId) {
+            const gridContainer = document.getElementById(gridElementId);
+            gridContainer.innerHTML = ''; // Clear previous content
 
-            // Headers
-            const headerRow = document.createElement('div');
-            headerRow.classList.add('payment-status-grid-row'); // Use a specific class for row if needed
-            
+            const years = Object.keys(paymentStatus).sort(); // Sort years
+            const months = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
+
+            // Add header row
             const yearHeader = document.createElement('div');
-            yearHeader.classList.add('payment-grid-header');
+            yearHeader.className = 'payment-grid-header';
             yearHeader.textContent = 'Año';
-            container.appendChild(yearHeader);
+            gridContainer.appendChild(yearHeader);
 
             months.forEach(month => {
                 const monthHeader = document.createElement('div');
-                monthHeader.classList.add('payment-grid-header');
-                monthHeader.textContent = month.substring(0, 3); // Ene, Feb, etc.
-                container.appendChild(monthHeader);
+                monthHeader.className = 'payment-grid-header';
+                monthHeader.textContent = month.substring(0, 3); // Abbreviated month
+                gridContainer.appendChild(monthHeader);
             });
 
-            // Data rows
-            paymentStatus.forEach(yearData => {
+            // Add data rows
+            years.forEach(year => {
                 const yearCell = document.createElement('div');
-                yearCell.classList.add('payment-grid-item', 'font-bold');
-                yearCell.textContent = yearData.year;
-                container.appendChild(yearCell);
+                yearCell.className = 'payment-grid-item payment-grid-header'; // Use header style for year cell
+                yearCell.textContent = year;
+                gridContainer.appendChild(yearCell);
 
-                yearData.months.forEach(monthInfo => {
-                    const monthCell = document.createElement('div');
-                    monthCell.classList.add('payment-grid-item');
-                    if (monthInfo.status === 'paid') {
-                        monthCell.classList.add('paid');
-                        monthCell.innerHTML = '&#10003;'; // Checkmark
+                months.forEach((month, index) => {
+                    const monthKey = `${month} ${year}`;
+                    const isPaid = paymentStatus[year] && paymentStatus[year][monthKey]; // Check if month exists and is paid
+                    
+                    const cell = document.createElement('div');
+                    cell.className = 'payment-grid-item';
+                    if (isPaid) {
+                        cell.textContent = '✓'; // Green checkmark
+                        cell.classList.add('paid');
                     } else {
-                        monthCell.classList.add('unpaid');
-                        monthCell.innerHTML = '&#10007;'; // X mark
+                        cell.textContent = '✗'; // Red X
+                        cell.classList.add('unpaid');
                     }
-                    container.appendChild(monthCell);
+                    gridContainer.appendChild(cell);
                 });
             });
         }
 
-        // --- "Registrar Aporte" Module ---
-        async function loadParticipantsForRegistration() {
-            const select = document.getElementById('select-participante-aporte');
-            select.innerHTML = '<option value="">Cargando participantes...</option>';
-            try {
-                // Fetch all active participants, without filters for registration
-                const response = await fetch(`${APP_SCRIPT_URL}?action=getAllParticipants`);
-                const data = await response.json();
 
-                if (data.success) {
-                    select.innerHTML = '<option value="">Seleccione un participante</option>';
-                    if (data.participants && data.participants.length > 0) {
+        // --- Public Participant View ---
+        async function loadPublicParticipantData(participantId) {
+            showLoading('public-loading-spinner');
+            document.getElementById('public-participant-name-display').textContent = 'Cargando...';
+            document.getElementById('public-payment-status-grid').innerHTML = ''; // Clear grid
+            hideMessage('public-error-message');
+
+            try {
+                const response = await google.script.run.withSuccessHandler(data => {
+                    hideLoading('public-loading-spinner');
+                    if (data.success && data.details && data.paymentStatus) {
+                        document.getElementById('public-participant-name-display').textContent = `Participante: ${data.details.Nombre}`;
+                        displayPaymentStatusGrid(data.paymentStatus, 'public-payment-status-grid');
+                    } else {
+                        showMessage('public-error-message', data.message || 'No se encontró el participante o su estado de pagos.', 'error');
+                        document.getElementById('public-participant-name-display').textContent = 'Error al cargar datos.';
+                    }
+                }).withFailureHandler(error => {
+                    hideLoading('public-loading-spinner');
+                    console.error('Error loading public data:', error);
+                    showMessage('public-error-message', `Error de conexión: ${error.message}`, 'error');
+                }).getPublicParticipantDetailsAndStatus(participantId);
+            } catch (error) {
+                hideLoading('public-loading-spinner');
+                console.error('Unexpected error in loadPublicParticipantData:', error);
+                showMessage('public-error-message', `Error inesperado: ${error.message}`, 'error');
+            }
+        }
+
+        function generateAndSharePublicUrl(participantId) {
+            const publicUrl = `${window.location.origin}${window.location.pathname}?action=getPublicParticipantData&id=${participantId}`;
+            navigator.clipboard.writeText(publicUrl).then(() => {
+                alert('URL pública copiada al portapapeles: ' + publicUrl);
+            }).catch(err => {
+                console.error('Error al copiar la URL: ', err);
+                alert('No se pudo copiar la URL al portapapeles. Por favor, cópiala manualmente: ' + publicUrl);
+            });
+        }
+
+        // --- Manage Participants Functions (Admin Only) ---
+        const participantForm = document.getElementById('participant-form');
+        const participantIdInput = document.getElementById('participant-id');
+        const participantCodeInput = document.getElementById('participant-code');
+        const participantNameInput = document.getElementById('participant-name');
+        const participantTutoraInput = document.getElementById('participant-tutora');
+        const participantCiudadaniaInput = document.getElementById('participant-ciudadania');
+        const participantMontoMesInput = document.getElementById('participant-monto-mes');
+        const participantSaldoFavorInput = document.getElementById('participant-saldo-favor');
+        const participantLastPaidMonthInput = document.getElementById('participant-last-paid-month');
+        const participantStatusSelect = document.getElementById('participant-status');
+        const participantFechaIngresoInput = document.getElementById('participant-fecha-ingreso');
+        const participantFormMessage = document.getElementById('participant-form-message');
+        const tutorasDatalist = document.getElementById('tutoras-list');
+
+        async function loadAdminParticipantsForEdit() {
+            showLoading('admin-participants-loading');
+            try {
+                const response = await google.script.run.withSuccessHandler(data => {
+                    hideLoading('admin-participants-loading');
+                    const tableBody = document.getElementById('admin-participants-table-body');
+                    tableBody.innerHTML = '';
+                    if (data.success && data.participants.length > 0) {
                         data.participants.forEach(p => {
-                            const option = document.createElement('option');
-                            option.value = p.id;
-                            option.textContent = `${p.nombre} (${p.codigo}) - ${p.tutora}`;
-                            select.appendChild(option);
+                            const row = tableBody.insertRow();
+                            row.insertCell(0).textContent = p.Código;
+                            row.insertCell(1).textContent = p.Nombre;
+                            row.insertCell(2).textContent = p.Tutora;
+                            row.insertCell(3).textContent = p.Estado;
+                            const actionsCell = row.insertCell(4);
+
+                            const editButton = document.createElement('button');
+                            editButton.textContent = 'Editar';
+                            editButton.className = 'button secondary';
+                            editButton.onclick = () => openAddEditParticipantModal(p);
+                            actionsCell.appendChild(editButton);
+
+                            const deleteButton = document.createElement('button');
+                            deleteButton.textContent = 'Eliminar';
+                            deleteButton.className = 'button danger';
+                            deleteButton.onclick = () => deleteParticipant(p.ID, p.Nombre);
+                            actionsCell.appendChild(deleteButton);
                         });
                     } else {
-                        select.innerHTML = '<option value="">No hay participantes activos.</option>';
+                        tableBody.innerHTML = '<tr><td colspan="5">No se encontraron participantes.</td></tr>';
                     }
-                } else {
-                    showMessage('registro-aporte-message', `Error al cargar participantes: ${data.message}`, false);
-                }
+                }).withFailureHandler(error => {
+                    hideLoading('admin-participants-loading');
+                    console.error('Error al cargar participantes para edición:', error);
+                    document.getElementById('admin-participants-table-body').innerHTML = `<tr><td colspan="5" class="message error">Error al cargar participantes: ${error.message}</td></tr>`;
+                }).getAllParticipants(); // Admin gets all participants
             } catch (error) {
-                console.error("Error loading participants for registration:", error);
-                showMessage('registro-aporte-message', 'Error de conexión al servidor al cargar participantes.', false);
+                hideLoading('admin-participants-loading');
+                console.error('Unexpected error in loadAdminParticipantsForEdit:', error);
+                document.getElementById('admin-participants-table-body').innerHTML = `<tr><td colspan="5" class="message error">Error inesperado: ${error.message}</td></tr>`;
             }
         }
 
-        document.getElementById('select-participante-aporte').addEventListener('change', async (e) => {
-            const participantId = e.target.value;
-            const participantInfoDiv = document.getElementById('participante-info');
-            const monthYearSelectionContainer = document.getElementById('month-year-selection-container');
-            
-            if (!participantId) {
-                participantInfoDiv.classList.add('hidden');
-                monthYearSelectionContainer.innerHTML = '';
-                document.getElementById('total-monto-calculado').value = '0.00';
-                document.getElementById('monto-total-a-registrar').value = '0.00';
-                return;
-            }
-
+        async function loadTutorasForParticipantForm() {
             try {
-                const [detailsResponse, statusResponse] = await Promise.all([
-                    fetch(`${APP_SCRIPT_URL}?action=getParticipantDetails&participantId=${encodeURIComponent(participantId)}`),
-                    fetch(`${APP_SCRIPT_URL}?action=getParticipantPaymentStatus&participantId=${encodeURIComponent(participantId)}`)
-                ]);
-
-                const detailsData = await detailsResponse.json();
-                const statusData = await statusResponse.json();
-
-                if (detailsData.success && statusData.success) {
-                    const participant = detailsData.participant;
-                    const paymentStatus = statusData.paymentStatus;
-                    
-                    document.getElementById('info-codigo').textContent = participant.codigo;
-                    document.getElementById('info-nombre').textContent = participant.nombre;
-                    document.getElementById('info-ciudadania').textContent = participant.ciudadania;
-                    document.getElementById('info-ultimo-mes').textContent = participant.ultimoMesPago || 'Nunca';
-                    document.getElementById('info-meses-pendientes').textContent = participant.mesesEnDeuda;
-                    document.getElementById('info-total-pendiente').textContent = `$${participant.totalAPagar.toFixed(2)}`;
-                    document.getElementById('info-tutora').textContent = participant.tutora;
-                    document.getElementById('info-abono-pendiente').textContent = `$${participant.abonoPendiente.toFixed(2)}`;
-                    document.getElementById('monto-pago-por-mes').value = getContributionAmount(new Date(participant.fechaIngreso)); // Default based on current contribution rate
-
-                    participantInfoDiv.classList.remove('hidden');
-                    renderMonthYearSelection(paymentStatus, participant.fechaIngreso);
-                    calculateTotalAporte(); // Initial calculation
-                } else {
-                    showMessage('registro-aporte-message', `Error al cargar detalles/estado: ${detailsData.message || statusData.message}`, false);
-                    participantInfoDiv.classList.add('hidden');
-                    monthYearSelectionContainer.innerHTML = '';
-                }
+                const response = await google.script.run.withSuccessHandler(data => {
+                    tutorasDatalist.innerHTML = '';
+                    if (data.success && data.users.length > 0) {
+                        data.users.filter(u => u.role === 'tutora' && u.tutoraName).forEach(tutora => {
+                            const option = document.createElement('option');
+                            option.value = tutora.tutoraName;
+                            tutorasDatalist.appendChild(option);
+                        });
+                    }
+                }).withFailureHandler(error => {
+                    console.error('Error al cargar tutoras:', error);
+                }).getAllUsers();
             } catch (error) {
-                console.error("Error fetching participant details or status:", error);
-                showMessage('registro-aporte-message', 'Error de conexión al servidor.', false);
-                participantInfoDiv.classList.add('hidden');
-                monthYearSelectionContainer.innerHTML = '';
+                console.error('Unexpected error in loadTutorasForParticipantForm:', error);
             }
-        });
-
-        function renderMonthYearSelection(paymentStatus, entryDate) {
-            const container = document.getElementById('month-year-selection-container');
-            container.innerHTML = '';
-
-            const currentYear = new Date().getFullYear();
-            const currentMonth = new Date().getMonth();
-
-            paymentStatus.forEach(yearData => {
-                const year = yearData.year;
-                // Only show years from entry date or 2022, up to current year + 1
-                if (year < entryDate.getFullYear() && year < 2022) return;
-                if (year > currentYear + 1) return;
-
-                const yearGroup = document.createElement('div');
-                yearGroup.classList.add('year-group');
-                yearGroup.innerHTML = `<h4>${year}</h4><div class="months-grid"></div>`;
-                const monthsGrid = yearGroup.querySelector('.months-grid');
-
-                yearData.months.forEach((monthInfo, index) => {
-                    const monthName = months[index];
-                    const monthDate = new Date(year, index, 1);
-                    const checkboxGroup = document.createElement('div');
-                    checkboxGroup.classList.add('month-checkbox-group');
-
-                    const checkbox = document.createElement('input');
-                    checkbox.type = 'checkbox';
-                    checkbox.id = `month-${year}-${index}`;
-                    checkbox.name = 'selectedMonths';
-                    checkbox.value = `${monthName} ${year}`;
-                    checkbox.dataset.month = index;
-                    checkbox.dataset.year = year;
-                    checkbox.dataset.monthYearString = `${monthName} ${year}`;
-
-                    const label = document.createElement('label');
-                    label.htmlFor = `month-${year}-${index}`;
-                    label.textContent = monthName;
-
-                    // Logic for blocking and checking months
-                    const isBeforeEntry = (year < entryDate.getFullYear() || (year === entryDate.getFullYear() && index < entryDate.getMonth()));
-                    const isPaid = (monthInfo.status === 'paid');
-                    const isFutureMonth = (year > currentYear || (year === currentYear && index > currentMonth));
-                    const isCurrentMonth = (year === currentYear && index === currentMonth);
-
-                    if (isPaid || isBeforeEntry || isFutureMonth) {
-                        checkbox.checked = true;
-                        checkbox.disabled = true;
-                    } else { // Unpaid and not a future month
-                        checkbox.checked = false;
-                        checkbox.disabled = false;
-                    }
-                    
-                    // The month of entry is not paid by default, mark as unpaid initially if not explicitly paid
-                    if (year === entryDate.getFullYear() && index === entryDate.getMonth() && !isPaid) {
-                        checkbox.checked = false; // Ensure it's not checked if it's the entry month and unpaid
-                        checkbox.disabled = false;
-                    }
-                    
-                    // If month is paid or before entry date, visually reflect it
-                    if (isPaid || isBeforeEntry) {
-                        checkbox.classList.add('paid-month-checkbox'); // For potential styling
-                    }
-
-                    checkboxGroup.appendChild(checkbox);
-                    checkboxGroup.appendChild(label);
-                    monthsGrid.appendChild(checkboxGroup);
-
-                    checkbox.addEventListener('change', handleMonthCheckboxChange);
-                });
-                container.appendChild(yearGroup);
-            });
         }
 
 
-        function handleMonthCheckboxChange(event) {
-            const clickedCheckbox = event.target;
-            const clickedMonthIndex = parseInt(clickedCheckbox.dataset.month);
-            const clickedYear = parseInt(clickedCheckbox.dataset.year);
-
-            if (clickedCheckbox.checked) {
-                // If a checkbox is checked, check all preceding unpaid and unblocked months in the same year
-                const checkboxesInYear = document.querySelectorAll(`.year-group input[type="checkbox"][data-year="${clickedYear}"]`);
-                let foundClicked = false;
-                checkboxesInYear.forEach(cb => {
-                    const cbMonthIndex = parseInt(cb.dataset.month);
-                    if (cb === clickedCheckbox) {
-                        foundClicked = true;
-                    }
-                    if (!foundClicked && cbMonthIndex < clickedMonthIndex && !cb.disabled && !cb.checked) {
-                        cb.checked = true;
-                    }
-                });
+        function openAddEditParticipantModal(participant = null) {
+            hideMessage('participant-form-message');
+            participantForm.reset();
+            if (participant) {
+                document.getElementById('participant-modal-title').textContent = 'Editar Participante';
+                participantIdInput.value = participant.ID;
+                participantCodeInput.value = participant.Código;
+                participantNameInput.value = participant.Nombre;
+                participantTutoraInput.value = participant.Tutora;
+                participantCiudadaniaInput.value = participant.Ciudadanía;
+                participantMontoMesInput.value = participant.MontoAPagarMes;
+                participantSaldoFavorInput.value = participant.SaldoAFavor;
+                participantLastPaidMonthInput.value = participant.UltimoMesPago; // "Mes Año" string
+                participantStatusSelect.value = participant.Estado;
+                participantFechaIngresoInput.value = formatDateForInput(participant.FechaDeIngreso);
             } else {
-                // If a checkbox is unchecked, uncheck all subsequent unpaid and unblocked months in the same year
-                const checkboxesInYear = document.querySelectorAll(`.year-group input[type="checkbox"][data-year="${clickedYear}"]`);
-                let foundClicked = false;
-                checkboxesInYear.forEach(cb => {
-                    const cbMonthIndex = parseInt(cb.dataset.month);
-                    if (cb === clickedCheckbox) {
-                        foundClicked = true;
-                    } else if (foundClicked && cbMonthIndex > clickedMonthIndex && !cb.disabled && cb.checked) {
-                        cb.checked = false;
-                    }
-                });
+                document.getElementById('participant-modal-title').textContent = 'Añadir Nuevo Participante';
+                participantIdInput.value = '';
+                participantStatusSelect.value = 'Activo';
+                participantFechaIngresoInput.value = getCurrentDateISO();
             }
-            calculateTotalAporte();
+            addEditParticipantModal.style.display = 'flex';
         }
 
-        function calculateTotalAporte() {
-            const selectedParticipantId = document.getElementById('select-participante-aporte').value;
-            const participant = currentParticipants.find(p => p.id === selectedParticipantId);
-
-            if (!participant) {
-                document.getElementById('total-monto-calculado').value = '0.00';
-                document.getElementById('monto-total-a-registrar').value = '0.00';
-                return;
-            }
-
-            let totalCalculated = 0;
-            const selectedCheckboxes = document.querySelectorAll('#month-year-selection-container input[type="checkbox"]:checked:not(:disabled)');
-
-            selectedCheckboxes.forEach(checkbox => {
-                const monthIndex = parseInt(checkbox.dataset.month);
-                const year = parseInt(checkbox.dataset.year);
-                const monthDate = new Date(year, monthIndex, 1);
-                totalCalculated += getContributionAmount(monthDate);
-            });
-
-            document.getElementById('total-monto-calculado').value = totalCalculated.toFixed(2);
-            // Default monto-total-a-registrar to calculated total, consider abono
-            const abonoPendiente = parseFloat(document.getElementById('info-abono-pendiente').textContent.replace('$', '')) || 0;
-            const initialMontoToRegister = Math.max(0, totalCalculated - abonoPendiente);
-            document.getElementById('monto-total-a-registrar').value = initialMontoToRegister.toFixed(2);
-        }
-
-        document.getElementById('registro-aporte-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
-
-            const participantId = document.getElementById('select-participante-aporte').value;
-            const selectedMonthsCheckboxes = document.querySelectorAll('#month-year-selection-container input[type="checkbox"]:checked:not(:disabled)');
-            
-            if (selectedMonthsCheckboxes.length === 0) {
-                showMessage('registro-aporte-message', 'Debe seleccionar al menos un mes para registrar el aporte.', false);
-                return;
-            }
-
-            const selectedMonthsData = Array.from(selectedMonthsCheckboxes).map(cb => ({
-                monthYear: cb.value,
-                month: months[parseInt(cb.dataset.month)],
-                year: parseInt(cb.dataset.year)
-            }));
-            
-            const montoTotalRegistered = parseFloat(document.getElementById('monto-total-a-registrar').value);
-            const fechaRegistro = document.getElementById('fecha-pago').value;
-
-            if (isNaN(montoTotalRegistered) || montoTotalRegistered <= 0) {
-                showMessage('registro-aporte-message', 'El monto total a registrar debe ser un número positivo.', false);
-                return;
-            }
-
-            try {
-                const formData = new URLSearchParams();
-                formData.append('action', 'registerAporte');
-                formData.append('participantId', participantId);
-                formData.append('selectedMonthsData', JSON.stringify(selectedMonthsData));
-                formData.append('montoTotalRegistered', montoTotalRegistered);
-                formData.append('fechaRegistro', fechaRegistro);
-                formData.append('registeredBy', currentTutoraName || currentUserRole);
-
-                const response = await fetch(`${APP_SCRIPT_URL}`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                    body: formData.toString()
-                });
-                const data = await response.json();
-
-                if (data.success) {
-                    showMessage('registro-aporte-message', data.message, true);
-                    resetRegisterAporteForm();
-                    loadParticipantsForRegistration(); // Reload participant dropdown
-                    if (currentUserRole === 'Admin') {
-                        loadAdminParticipantsForEdit();
-                    } else if (currentUserRole === 'Tutora') {
-                        loadTutoraParticipants();
-                    }
-                    loadDashboardData();
-                } else {
-                    showMessage('registro-aporte-message', `Error al registrar aporte: ${data.message}`, false);
-                }
-            } catch (error) {
-                console.error("Error registering aporte:", error);
-                showMessage('registro-aporte-message', 'Error de conexión al servidor al registrar aporte.', false);
-            }
-        });
-
-        function resetRegisterAporteForm() {
-            document.getElementById('registro-aporte-form').reset();
-            document.getElementById('select-participante-aporte').value = '';
-            document.getElementById('participante-info').classList.add('hidden');
-            document.getElementById('month-year-selection-container').innerHTML = '';
-            document.getElementById('total-monto-calculado').value = '0.00';
-            document.getElementById('monto-total-a-registrar').value = '0.00';
-            document.getElementById('fecha-pago').valueAsDate = new Date(); // Set current date
-        }
-
-        // --- "Administrar Participantes" Module (Admin Only) ---
-        const addEditParticipantModal = document.getElementById('add-edit-participant-modal');
-        const closeAddEditModalButton = document.getElementById('close-add-edit-modal');
-        const addEditModalTitle = document.getElementById('add-edit-modal-title');
-        const addEditParticipantForm = document.getElementById('add-edit-participant-form');
-
-        closeAddEditModalButton.addEventListener('click', () => {
+        function closeAddEditParticipantModal() {
             addEditParticipantModal.style.display = 'none';
-        });
-
-        window.addEventListener('click', (event) => {
-            if (event.target == addEditParticipantModal) {
-                addEditParticipantModal.style.display = 'none';
-            }
-        });
-
-        document.getElementById('add-new-participant-button').addEventListener('click', () => {
-            addEditModalTitle.textContent = 'Añadir Nuevo Participante';
-            addEditParticipantForm.reset();
-            document.getElementById('participant-id').value = ''; // Clear ID for new participant
-            document.getElementById('participant-monthly-amount').value = getContributionAmount(new Date()); // Default current amount
-            document.getElementById('participant-entry-date').valueAsDate = new Date(); // Default to today
-            addEditParticipantModal.style.display = 'block';
-            showMessage('add-edit-participant-message', '', true); // Clear any previous messages
-        });
-
-        async function populateTutorasForAddEdit() {
-            const selectTutora = document.getElementById('participant-tutora');
-            selectTutora.innerHTML = '<option value="">Cargando tutoras...</option>';
-            try {
-                const response = await fetch(`${APP_SCRIPT_URL}?action=getTutoras`);
-                const data = await response.json();
-
-                if (data.success) {
-                    selectTutora.innerHTML = '<option value="">Seleccione una tutora</option>';
-                    if (data.tutoras && data.tutoras.length > 0) {
-                        data.tutoras.forEach(tutora => {
-                            const option = document.createElement('option');
-                            option.value = tutora;
-                            option.textContent = tutora;
-                            selectTutora.appendChild(option);
-                        });
-                    } else {
-                        selectTutora.innerHTML = '<option value="">No hay tutoras configuradas.</option>';
-                    }
-                } else {
-                    showMessage('add-edit-participant-message', `Error al cargar tutoras: ${data.message}`, false);
-                }
-            } catch (error) {
-                console.error("Error loading tutoras:", error);
-                showMessage('add-edit-participant-message', 'Error de conexión al servidor al cargar tutoras.', false);
-            }
         }
 
-        async function openAddEditParticipantModal(participantId) {
-            addEditModalTitle.textContent = 'Editar Participante';
-            addEditParticipantForm.reset(); // Reset form first
-
-            try {
-                const response = await fetch(`${APP_SCRIPT_URL}?action=getParticipantDetails&participantId=${encodeURIComponent(participantId)}`);
-                const data = await response.json();
-
-                if (data.success) {
-                    const p = data.participant;
-                    document.getElementById('participant-id').value = p.id;
-                    document.getElementById('participant-code').value = p.codigo;
-                    document.getElementById('participant-name').value = p.nombre;
-                    document.getElementById('participant-citizenship').value = p.ciudadania;
-                    document.getElementById('participant-tutora').value = p.tutora;
-                    document.getElementById('participant-monthly-amount').value = p.montoMensual.toFixed(2);
-                    document.getElementById('participant-status').value = p.estado;
-                    // Format date for input type="date"
-                    const entryDate = new Date(p.fechaIngreso);
-                    document.getElementById('participant-entry-date').value = entryDate.toISOString().split('T')[0];
-
-                    addEditParticipantModal.style.display = 'block';
-                    showMessage('add-edit-participant-message', '', true); // Clear any previous messages
-                } else {
-                    alert(`Error al cargar detalles del participante: ${data.message}`);
-                }
-            } catch (error) {
-                console.error("Error fetching participant details:", error);
-                alert('Error de conexión al servidor al cargar detalles del participante.');
-            }
-        }
-
-        document.getElementById('participant-entry-date').addEventListener('change', () => {
-            const entryDateInput = document.getElementById('participant-entry-date').value;
-            if (entryDateInput) {
-                const entryDate = new Date(entryDateInput);
-                const calculatedAmount = getContributionAmount(entryDate);
-                document.getElementById('participant-monthly-amount').value = calculatedAmount.toFixed(2);
-            } else {
-                document.getElementById('participant-monthly-amount').value = '';
-            }
-        });
-
-
-        addEditParticipantForm.addEventListener('submit', async (e) => {
+        participantForm.addEventListener('submit', async (e) => {
             e.preventDefault();
+            hideMessage('participant-form-message');
+            showLoading('add-edit-participant-modal');
 
             const participantData = {
-                id: document.getElementById('participant-id').value,
-                codigo: document.getElementById('participant-code').value,
-                nombre: document.getElementById('participant-name').value,
-                ciudadania: document.getElementById('participant-citizenship').value,
-                tutora: document.getElementById('participant-tutora').value,
-                montoMensual: parseFloat(document.getElementById('participant-monthly-amount').value),
-                ultimoMesPago: document.getElementById('participant-last-paid-month').value, // This is now typically empty for new or derived
-                estado: document.getElementById('participant-status').value,
-                fechaIngreso: document.getElementById('participant-entry-date').value,
-                abonoPendiente: parseFloat(document.getElementById('participant-abono-pendiente').value) || 0
+                ID: participantIdInput.value || generateUniqueId(), // Use existing ID or generate new
+                Código: participantCodeInput.value,
+                Nombre: participantNameInput.value,
+                Tutora: participantTutoraInput.value,
+                Ciudadanía: participantCiudadaniaInput.value,
+                MontoAPagarMes: parseFloat(participantMontoMesInput.value),
+                SaldoAFavor: parseFloat(participantSaldoFavorInput.value),
+                UltimoMesPago: participantLastPaidMonthInput.value,
+                Estado: participantStatusSelect.value,
+                FechaDeIngreso: participantFechaIngresoInput.value
             };
 
             try {
-                const formData = new URLSearchParams();
-                formData.append('action', 'addOrUpdateParticipant');
-                formData.append('participantData', JSON.stringify(participantData));
-
                 const response = await fetch(`${APP_SCRIPT_URL}`, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                    body: formData.toString()
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: new URLSearchParams({
+                        action: 'addOrUpdateParticipant',
+                        participantData: JSON.stringify(participantData)
+                    }).toString()
                 });
                 const data = await response.json();
 
                 if (data.success) {
-                    showMessage('add-edit-participant-message', data.message, true);
-                    addEditParticipantModal.style.display = 'none';
-                    loadAdminParticipantsForEdit(); // Reload the table
-                    loadParticipantsForRegistration(); // Reload select in registrar aporte
+                    showMessage('participant-form-message', data.message, 'success');
+                    closeAddEditParticipantModal();
+                    loadAdminParticipantsForEdit(); // Recargar la tabla de gestión
+                    loadAllParticipants(); // Recargar tabla de aportes
+                    loadParticipantsForRegistration(); // Recargar select de registro de aportes
+                    loadDashboardData(); // Actualizar dashboard
                 } else {
-                    showMessage('add-edit-participant-message', `Error al guardar participante: ${data.message}`, false);
+                    showMessage('participant-form-message', `Error: ${data.message}`, 'error');
                 }
             } catch (error) {
-                console.error("Error saving participant:", error);
-                showMessage('add-edit-participant-message', 'Error de conexión al servidor al guardar participante.', false);
+                console.error("Error al guardar participante:", error);
+                showMessage('participant-form-message', 'Error de conexión al servidor.', 'error');
+            } finally {
+                hideLoading('add-edit-participant-modal');
             }
         });
 
@@ -1712,9 +1503,10 @@
 
                 if (data.success) {
                     alert(data.message);
-                    loadAdminParticipantsForEdit(); // Recargar la tabla
-                    loadParticipantsForRegistration(); // Recargar select de registro de aportes
-                    loadDashboardData(); // Actualizar dashboard
+                    loadAdminParticipantsForEdit();
+                    loadAllParticipants();
+                    loadParticipantsForRegistration();
+                    loadDashboardData();
                 } else {
                     alert(`Error al eliminar participante: ${data.message}`);
                 }
@@ -1724,123 +1516,194 @@
             }
         }
 
-        function shareParticipantUrl(participantId) {
-            const publicUrl = `${window.location.origin}${window.location.pathname}?participantId=${participantId}`;
-            navigator.clipboard.writeText(publicUrl).then(() => {
-                alert('URL de participante copiada al portapapeles: ' + publicUrl);
-            }).catch(err => {
-                console.error('Error al copiar URL: ', err);
-                alert('No se pudo copiar la URL. Por favor, cópiala manualmente: ' + publicUrl);
+        function generateUniqueId() {
+            return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+                var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+                return v.toString(16);
             });
         }
 
-        // --- Public Participant View ---
-        async function loadPublicParticipantView() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const participantId = urlParams.get('participantId');
 
-            if (participantId) {
-                document.getElementById('login-module').classList.add('hidden');
-                document.getElementById('main-app').classList.add('hidden');
-                document.getElementById('public-participant-view').classList.remove('hidden');
+        // --- Manage Users Functions (Admin Only) ---
+        const userForm = document.getElementById('user-form');
+        const userIdInput = document.getElementById('user-id');
+        const userUsernameInput = document.getElementById('user-username');
+        const userPasswordInput = document.getElementById('user-password');
+        const userRoleSelect = document.getElementById('user-role-select');
+        const userTutoraGroup = document.getElementById('user-tutora-group');
+        const userTutoraNameInput = document.getElementById('user-tutora-name');
+        const userFormMessage = document.getElementById('user-form-message');
 
-                try {
-                    const [detailsResponse, statusResponse] = await Promise.all([
-                        fetch(`${APP_SCRIPT_URL}?action=getParticipantDetails&participantId=${encodeURIComponent(participantId)}`),
-                        fetch(`${APP_SCRIPT_URL}?action=getParticipantPaymentStatus&participantId=${encodeURIComponent(participantId)}`)
-                    ]);
-
-                    const detailsData = await detailsResponse.json();
-                    const statusData = await statusResponse.json();
-
-                    if (detailsData.success && statusData.success) {
-                        const participant = detailsData.participant;
-                        const paymentStatus = statusData.paymentStatus;
-
-                        const publicDetailsDiv = document.getElementById('public-participant-details');
-                        publicDetailsDiv.innerHTML = `
-                            <div><strong>Código:</strong> ${participant.codigo}</div>
-                            <div><strong>Nombre:</strong> ${participant.nombre}</div>
-                            <div><strong>Ciudadanía:</strong> ${participant.ciudadania}</div>
-                            <div><strong>Tutora:</strong> ${participant.tutora}</div>
-                            <div><strong>Último Mes Pagado:</strong> ${participant.ultimoMesPago || 'Nunca'}</div>
-                            <div><strong>Meses Pendientes:</strong> ${participant.mesesEnDeuda}</div>
-                            <div><strong>Total Pendiente:</strong> $${participant.totalAPagar.toFixed(2)}</div>
-                        `;
-                        renderPaymentStatusGrid(paymentStatus, 'public-payment-status-grid-container');
-
-                    } else {
-                        document.getElementById('public-participant-details').innerHTML = `<p class="message error">Error al cargar información del participante: ${detailsData.message || statusData.message}</p>`;
-                    }
-                } catch (error) {
-                    console.error("Error loading public participant view:", error);
-                    document.getElementById('public-participant-details').innerHTML = `<p class="message error">Error de conexión al servidor.</p>`;
-                }
+        function toggleTutoraField() {
+            if (userRoleSelect.value === 'tutora') {
+                userTutoraGroup.style.display = 'block';
+                userTutoraNameInput.setAttribute('required', 'required');
             } else {
-                // If no participantId in URL, show login module
-                document.getElementById('login-module').classList.remove('hidden');
+                userTutoraGroup.style.display = 'none';
+                userTutoraNameInput.removeAttribute('required');
+                userTutoraNameInput.value = ''; // Clear tutora name if not a tutora
             }
         }
 
-        // --- "Historial de Aportes" Module ---
-        async function loadAllAportes() {
-            const searchFilter = document.getElementById('search-aportes-participant').value;
-            const filterMonth = document.getElementById('filter-aportes-month').value;
-            const filterYear = document.getElementById('filter-aportes-year').value;
+        async function loadUsers() {
+            showLoading('users-loading');
+            try {
+                const response = await google.script.run.withSuccessHandler(data => {
+                    hideLoading('users-loading');
+                    const tableBody = document.getElementById('users-table-body');
+                    tableBody.innerHTML = '';
+                    if (data.success && data.users.length > 0) {
+                        data.users.forEach(user => {
+                            const row = tableBody.insertRow();
+                            row.insertCell(0).textContent = user.username;
+                            row.insertCell(1).textContent = user.role;
+                            row.insertCell(2).textContent = user.tutoraName || 'N/A';
+                            const actionsCell = row.insertCell(3);
+
+                            const editButton = document.createElement('button');
+                            editButton.textContent = 'Editar';
+                            editButton.className = 'button secondary';
+                            editButton.onclick = () => openAddEditUserModal(user);
+                            actionsCell.appendChild(editButton);
+
+                            const deleteButton = document.createElement('button');
+                            deleteButton.textContent = 'Eliminar';
+                            deleteButton.className = 'button danger';
+                            deleteButton.onclick = () => deleteUser(user.ID, user.username);
+                            actionsCell.appendChild(deleteButton);
+                        });
+                    } else {
+                        tableBody.innerHTML = '<tr><td colspan="4">No se encontraron usuarios.</td></tr>';
+                    }
+                }).withFailureHandler(error => {
+                    hideLoading('users-loading');
+                    console.error('Error al cargar usuarios:', error);
+                    document.getElementById('users-table-body').innerHTML = `<tr><td colspan="4" class="message error">Error al cargar usuarios: ${error.message}</td></tr>`;
+                }).getAllUsers();
+            } catch (error) {
+                hideLoading('users-loading');
+                console.error('Unexpected error in loadUsers:', error);
+                document.getElementById('users-table-body').innerHTML = `<tr><td colspan="4" class="message error">Error inesperado: ${error.message}</td></tr>`;
+            }
+        }
+
+        function openAddEditUserModal(user = null) {
+            hideMessage('user-form-message');
+            userForm.reset();
+            if (user) {
+                document.getElementById('user-modal-title').textContent = 'Editar Usuario';
+                userIdInput.value = user.ID;
+                userUsernameInput.value = user.username;
+                userRoleSelect.value = user.role;
+                userTutoraNameInput.value = user.tutoraName || '';
+                userPasswordInput.removeAttribute('required'); // Password is optional on edit
+            } else {
+                document.getElementById('user-modal-title').textContent = 'Añadir Nuevo Usuario';
+                userIdInput.value = '';
+                userRoleSelect.value = 'administrador'; // Default to admin for new user
+                userPasswordInput.setAttribute('required', 'required'); // Password is required for new user
+            }
+            toggleTutoraField(); // Adjust visibility based on role
+            addEditUserModal.style.display = 'flex';
+        }
+
+        function closeAddEditUserModal() {
+            addEditUserModal.style.display = 'none';
+        }
+
+        userForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            hideMessage('user-form-message');
+            showLoading('add-edit-user-modal');
+
+            const userData = {
+                ID: userIdInput.value || generateUniqueId(),
+                username: userUsernameInput.value,
+                password: userPasswordInput.value, // Will be hashed on server if provided
+                role: userRoleSelect.value,
+                tutoraName: userTutoraNameInput.value || ''
+            };
 
             try {
-                const url = `${APP_SCRIPT_URL}?action=getAllAportes&searchFilter=${encodeURIComponent(searchFilter)}&filterMonth=${encodeURIComponent(filterMonth)}&filterYear=${encodeURIComponent(filterYear)}`;
-                const response = await fetch(url);
+                const response = await fetch(`${APP_SCRIPT_URL}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: new URLSearchParams({
+                        action: 'addOrUpdateUser',
+                        userData: JSON.stringify(userData)
+                    }).toString()
+                });
                 const data = await response.json();
 
                 if (data.success) {
-                    renderAportesTable(data.aportes);
+                    showMessage('user-form-message', data.message, 'success');
+                    closeAddEditUserModal();
+                    loadUsers(); // Recargar la tabla de usuarios
                 } else {
-                    showMessage('aportes-totales-message', `Error al cargar historial de aportes: ${data.message}`, false);
+                    showMessage('user-form-message', `Error: ${data.message}`, 'error');
                 }
             } catch (error) {
-                console.error("Error loading all aportes:", error);
-                showMessage('aportes-totales-message', 'Error de conexión al servidor al cargar historial de aportes.', false);
+                console.error("Error al guardar usuario:", error);
+                showMessage('user-form-message', 'Error de conexión al servidor.', 'error');
+            } finally {
+                hideLoading('add-edit-user-modal');
             }
-        }
+        });
 
-        function renderAportesTable(aportes) {
-            const tableBody = document.getElementById('aportes-totales-table-body');
-            tableBody.innerHTML = '';
-            if (aportes && aportes.length > 0) {
-                aportes.forEach(a => {
-                    const row = tableBody.insertRow();
-                    row.insertCell().setAttribute('data-label', 'Fecha Registro'); row.cells[0].textContent = a.fechaRegistro;
-                    row.insertCell().setAttribute('data-label', 'Código Participante'); row.cells[1].textContent = a.codigoParticipante;
-                    row.insertCell().setAttribute('data-label', 'Nombre Participante'); row.cells[2].textContent = a.nombreParticipante;
-                    row.insertCell().setAttribute('data-label', 'Mes Pagado'); row.cells[3].textContent = a.mesPagado;
-                    row.insertCell().setAttribute('data-label', 'Año Pagado'); row.cells[4].textContent = a.añoPagado;
-                    row.insertCell().setAttribute('data-label', 'Monto'); row.cells[5].textContent = `$${a.monto.toFixed(2)}`;
-                    row.insertCell().setAttribute('data-label', 'Tutora'); row.cells[6].textContent = a.tutora;
+        async function deleteUser(userId, username) {
+            if (!confirm(`¿Estás seguro de que quieres eliminar al usuario ${username}?`)) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`${APP_SCRIPT_URL}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: new URLSearchParams({
+                        action: 'deleteUser',
+                        userId: userId
+                    }).toString()
                 });
-            } else {
-                const row = tableBody.insertRow();
-                const cell = row.insertCell();
-                cell.colSpan = 7;
-                cell.textContent = 'No hay aportes para mostrar.';
-                cell.classList.add('text-center');
+                const data = await response.json();
+
+                if (data.success) {
+                    alert(data.message);
+                    loadUsers();
+                } else {
+                    alert(`Error al eliminar usuario: ${data.message}`);
+                }
+            } catch (error) {
+                console.error("Error al eliminar usuario:", error);
+                alert('Error de conexión al servidor al intentar eliminar el usuario.');
             }
-            // Add responsive class to the table
-            document.querySelector('#aportes-totales-table-body').closest('table').classList.add('responsive');
         }
 
-        document.getElementById('apply-aportes-filters').addEventListener('click', loadAllAportes);
 
-
-        // --- Initial Load ---
+        // --- Initial Load Logic ---
         document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('fecha-registro').value = getCurrentDateISO();
+
+            // Check URL for public access
             const urlParams = new URLSearchParams(window.location.search);
-            if (urlParams.has('participantId')) {
-                loadPublicParticipantView();
+            const publicParticipantId = urlParams.get('id');
+            const action = urlParams.get('action');
+
+            if (action === 'getPublicParticipantData' && publicParticipantId) {
+                loginModule.classList.add('hidden');
+                mainApp.classList.add('hidden');
+                tutoraPaymentView.classList.add('hidden'); // Ensure tutora view is also hidden
+                publicParticipantView.classList.remove('hidden');
+                loadPublicParticipantData(publicParticipantId);
             } else {
-                document.getElementById('login-module').classList.remove('hidden');
+                loginModule.classList.remove('hidden');
+                mainApp.classList.add('hidden');
+                tutoraPaymentView.classList.add('hidden'); // Ensure tutora view is initially hidden
+                publicParticipantView.classList.add('hidden');
             }
-            document.getElementById('fecha-pago').valueAsDate = new Date(); // Set current date for registration form
         });
 
     </script>
