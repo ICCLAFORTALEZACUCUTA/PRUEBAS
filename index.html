@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema de Gestión de Aportes - Renovado</title>
+    <title>Sistema de Gestión de Aportes - Mejorado</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -45,7 +45,7 @@
             border-radius: 12px;
             box-shadow: var(--shadow-medium);
             flex-grow: 1;
-            display: none; /* Hidden by default until login */
+            display: none;
         }
 
         .header {
@@ -223,13 +223,15 @@
             margin-top: 20px;
             box-shadow: var(--shadow-light);
             border-radius: 12px;
-            overflow: hidden; /* Ensures rounded corners apply to content */
+            overflow: hidden;
+            table-layout: fixed;
         }
 
         th, td {
             padding: 12px 15px;
             text-align: left;
             border-bottom: 1px solid var(--border-color);
+            word-wrap: break-word;
         }
 
         th {
@@ -370,27 +372,62 @@
             border-radius: 12px;
             box-shadow: var(--shadow-light);
             margin-top: 20px;
+            max-width: 100%;
+            height: 400px;
+            position: relative;
+        }
+        .chart-container canvas {
+            height: 100% !important;
+            width: 100% !important;
         }
 
-        /* Payments History Table (Specifics) */
+
+        /* Historial de Aportes Filters */
+        .history-filters {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .history-filters .form-group {
+            flex-grow: 1;
+            min-width: 150px;
+        }
+        .history-search-container {
+            position: relative;
+            flex-grow: 2;
+            min-width: 250px;
+        }
+        .history-search-container input {
+            padding-left: 35px;
+        }
+        .history-search-container .search-icon {
+            position: absolute;
+            left: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--secondary-color);
+        }
+
         .payments-grid-container {
-            overflow-x: auto; /* Enable horizontal scrolling for the payments grid */
-            padding-bottom: 10px; /* Space for scrollbar */
+            overflow-x: auto;
+            padding-bottom: 10px;
         }
 
         .payments-grid {
             display: grid;
             gap: 5px;
-            grid-auto-flow: column; /* Arrange items in columns first */
-            grid-auto-columns: minmax(auto, max-content); /* Column width based on content */
+            grid-auto-flow: column;
+            grid-auto-columns: minmax(auto, max-content);
         }
 
         .payments-grid-header, .payments-grid-row {
-            display: contents; /* Allows children to be direct grid items */
+            display: contents;
         }
 
         .payments-grid-header div, .payments-grid-cell {
-            background-color: var(--primary-color); /* Header */
+            background-color: var(--primary-color);
             color: white;
             padding: 8px 12px;
             font-weight: 600;
@@ -398,7 +435,7 @@
             text-align: center;
             border-right: 1px solid rgba(255,255,255,0.2);
             border-bottom: 1px solid rgba(255,255,255,0.2);
-            white-space: nowrap; /* Prevent wrapping in headers */
+            white-space: nowrap;
         }
         .payments-grid-header div:last-child, .payments-grid-cell:last-child {
              border-right: none;
@@ -406,7 +443,7 @@
         .payments-grid-header div {
             position: sticky;
             top: 0;
-            z-index: 1; /* Keep header on top when scrolling */
+            z-index: 1;
         }
 
         .payments-grid-cell {
@@ -443,7 +480,7 @@
         /* Register Aporte Section (Checkboxes) */
         .month-selection-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); /* 100px min width for month boxes */
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
             gap: 10px;
             margin-top: 20px;
         }
@@ -473,7 +510,7 @@
 
         .month-checkbox-item input[type="checkbox"] {
             margin-right: 8px;
-            transform: scale(1.2); /* Make checkbox slightly larger */
+            transform: scale(1.2);
         }
 
         .month-checkbox-item label {
@@ -489,7 +526,7 @@
         }
 
         .summary-box {
-            background-color: #e0f2f1; /* Light teal */
+            background-color: #e0f2f1;
             padding: 15px;
             border-radius: 8px;
             border: 1px solid #b2dfdb;
@@ -517,153 +554,93 @@
             color: var(--success-color);
         }
 
-
-        /* Login Page */
-        .login-container {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            background-color: var(--background-color);
+        /* Dynamic Search and Autocomplete */
+        .autocomplete-container {
+            position: relative;
         }
 
-        .login-card {
-            background-color: var(--card-background);
-            padding: 40px;
-            border-radius: 12px;
-            box-shadow: var(--shadow-medium);
-            text-align: center;
-            width: 90%;
-            max-width: 400px;
+        .autocomplete-list {
+            position: absolute;
+            z-index: 10;
+            background-color: white;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            width: 100%;
+            max-height: 200px;
+            overflow-y: auto;
+            box-shadow: var(--shadow-light);
+            display: none;
         }
 
-        .login-card h2 {
-            color: var(--primary-color);
-            margin-bottom: 30px;
+        .autocomplete-item {
+            padding: 10px;
+            cursor: pointer;
+            border-bottom: 1px solid #eee;
+        }
+        .autocomplete-item:hover, .autocomplete-item.active {
+            background-color: #f0f0f0;
+        }
+        .autocomplete-item:last-child {
             border-bottom: none;
         }
-
-        .login-card input[type="text"],
-        .login-card input[type="password"] {
-            width: calc(100% - 20px);
-            padding: 12px 10px;
-            margin-bottom: 20px;
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            font-size: 1.1em;
-        }
-
-        .login-card button {
-            width: 100%;
-            padding: 12px;
-            font-size: 1.1em;
-        }
-
-        /* Public View */
-        .public-view-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-            background-color: var(--background-color);
-            padding: 20px;
-            box-sizing: border-box;
-        }
-
-        .public-card {
-            background-color: var(--card-background);
-            padding: 30px;
-            border-radius: 12px;
-            box-shadow: var(--shadow-medium);
-            width: 100%;
-            max-width: 600px;
-            text-align: center;
-        }
-
-        .public-card h2 {
-            color: var(--primary-color);
-            margin-bottom: 20px;
-            font-size: 1.8em;
-            border-bottom: 2px solid var(--primary-color);
-            padding-bottom: 10px;
-        }
-
-        .public-detail {
-            margin-bottom: 15px;
-            text-align: left;
-        }
-
-        .public-detail strong {
-            color: var(--secondary-color);
-            display: inline-block;
-            width: 150px;
-        }
-
-        .public-detail span {
-            color: var(--text-color);
-            font-size: 1.1em;
-        }
-
-        .public-months-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 25px;
-            box-shadow: var(--shadow-light);
-            border-radius: 10px;
-            overflow: hidden;
-        }
-        .public-months-table th, .public-months-table td {
-            padding: 10px;
-            border: 1px solid var(--border-color);
-            text-align: left;
-        }
-        .public-months-table th {
-            background-color: var(--secondary-color);
-            color: white;
-        }
-        .public-months-table tfoot td {
-            background-color: #e0e0e0;
+        .autocomplete-item .name {
             font-weight: 600;
-            font-size: 1.2em;
+            color: var(--primary-color);
         }
-        .public-months-table tfoot td:last-child {
-            color: var(--danger-color);
-        }
-
-        .share-url-container {
-            margin-top: 20px;
-            background-color: #e8f5e9; /* Light green */
-            padding: 15px;
-            border-radius: 8px;
-            border: 1px solid #c8e6c9;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            word-break: break-all;
-        }
-        .share-url-container input {
-            flex-grow: 1;
-            background-color: transparent;
-            border: none;
-            outline: none;
-            color: var(--text-color);
-            font-size: 0.95em;
-        }
-        .share-url-container button {
-            background-color: var(--accent-color);
-            color: white;
-            padding: 8px 15px;
-            border-radius: 6px;
+        .autocomplete-item .id {
+            color: var(--secondary-color);
             font-size: 0.9em;
-            transition: background-color 0.3s ease;
-        }
-        .share-url-container button:hover {
-            background-color: #FBBC04; /* Darker amber */
         }
 
+        /* Modal Styles */
+        .modal {
+            position: fixed;
+            z-index: 1002;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.4);
+            display: none;
+            justify-content: center;
+            align-items: center;
+        }
 
-        /* Responsive Design */
+        .modal-content {
+            background-color: var(--card-background);
+            padding: 25px;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: var(--shadow-medium);
+            position: relative;
+        }
+
+        .close-button {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            position: absolute;
+            top: 10px;
+            right: 20px;
+            cursor: pointer;
+            transition: color 0.3s;
+        }
+        .close-button:hover,
+        .close-button:focus {
+            color: var(--danger-color);
+            text-decoration: none;
+        }
+
+        .modal h2 {
+            margin-top: 0;
+            padding-top: 0;
+        }
+
+        /* Public View and Login styles are the same as before */
+
         @media (max-width: 768px) {
             .header {
                 flex-direction: column;
@@ -700,6 +677,49 @@
             }
             .public-detail strong {
                 width: 120px;
+            }
+            .history-filters {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            table {
+                display: block;
+                width: 100%;
+                overflow-x: auto;
+                white-space: nowrap;
+            }
+            table thead, table tbody, table th, table td, table tr {
+                display: block;
+            }
+            table thead {
+                display: none;
+            }
+            table tr {
+                margin-bottom: 10px;
+                border: 1px solid var(--border-color);
+                border-radius: 8px;
+                display: flex;
+                flex-direction: column;
+                padding: 10px;
+            }
+            table td {
+                text-align: right;
+                padding-left: 50%;
+                position: relative;
+                border: none;
+                word-wrap: break-word;
+            }
+            table td::before {
+                content: attr(data-label);
+                position: absolute;
+                left: 10px;
+                width: 45%;
+                text-align: left;
+                font-weight: 600;
+                color: var(--secondary-color);
+            }
+            .chart-container {
+                height: 300px;
             }
         }
         @media (max-width: 480px) {
@@ -800,11 +820,33 @@
 
         <div class="section" id="participantesSection">
             <h2>Gestión de Participantes</h2>
+            <div class="button-group" style="justify-content: flex-start;">
+                <button id="addParticipantButton"><i class="fas fa-plus"></i> Agregar Participante</button>
+            </div>
+            <h3>Lista de Participantes</h3>
+            <table id="participantesTable">
+                <thead>
+                    <tr>
+                        <th>Nombre</th>
+                        <th>Código</th>
+                        <th>Fecha Inscripción</th>
+                        <th>Tutora</th>
+                        <th>Estado</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    </tbody>
+            </table>
+        </div>
 
-            <div id="addEditParticipantForm">
+        <div id="participantModal" class="modal">
+            <div class="modal-content">
+                <span class="close-button">&times;</span>
+                <h2 id="modalTitle">Agregar Participante</h2>
                 <div class="form-group">
-                    <label for="cedulaParticipante">Cédula del Participante (ID Único):</label>
-                    <input type="text" id="cedulaParticipante" placeholder="Ej: CO067800215">
+                    <label for="codigoParticipante">Código del Participante:</label>
+                    <input type="text" id="codigoParticipante" placeholder="Ej: CO067800215">
                 </div>
                 <div class="form-group">
                     <label for="nombreParticipante">Nombre Completo del Participante:</label>
@@ -819,34 +861,29 @@
                     <select id="tutorParticipante">
                         </select>
                 </div>
+                <div class="form-group">
+                    <label for="statusParticipante">Estado:</label>
+                    <select id="statusParticipante">
+                        <option value="Activo">Activo</option>
+                        <option value="Inactivo">Inactivo</option>
+                    </select>
+                </div>
                 <div class="button-group">
                     <button id="saveParticipantButton"><i class="fas fa-save"></i> Guardar Participante</button>
-                    <button id="clearParticipantFormButton" class="danger"><i class="fas fa-eraser"></i> Limpiar Formulario</button>
+                    <button id="cancelModalButton" class="danger"><i class="fas fa-times"></i> Cancelar</button>
                 </div>
             </div>
-
-            <h3>Lista de Participantes</h3>
-            <table id="participantesTable">
-                <thead>
-                    <tr>
-                        <th>Nombre</th>
-                        <th>Cédula</th>
-                        <th>Fecha Inscripción</th>
-                        <th>Tutora</th>
-                        <th>Acciones</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    </tbody>
-            </table>
         </div>
 
         <div class="section" id="registrarAporteSection">
             <h2>Registrar Nuevo Aporte</h2>
             <div class="form-group">
-                <label for="selectParticipantAporte">Seleccionar Participante:</label>
-                <select id="selectParticipantAporte">
-                    </select>
+                <label for="searchParticipantAporte">Buscar Participante (Nombre o Código):</label>
+                <div class="autocomplete-container">
+                    <input type="text" id="searchParticipantAporte" placeholder="Escribe para buscar..." autocomplete="off">
+                    <div id="autocompleteListAporte" class="autocomplete-list"></div>
+                </div>
+                <input type="hidden" id="selectedParticipantIdAporte">
             </div>
 
             <div id="paymentDetailsContainer" style="display: none;">
@@ -857,7 +894,13 @@
                     <span>Abonos Realizados: <strong id="totalAbonos" class="currency">$0.0</strong></span>
                 </div>
 
-                <h3>Seleccionar Meses a Pagar (o Abonar)</h3>
+                <h3>Estado de Pagos Mensuales</h3>
+                <div class="payments-grid-container">
+                    <div class="payments-grid" id="paymentsGridForAporte">
+                        </div>
+                </div>
+
+                <h3 style="margin-top: 30px;">Seleccionar Meses a Pagar (o Abonar)</h3>
                 <div class="month-selection-grid" id="monthSelectionGrid">
                     </div>
 
@@ -875,39 +918,55 @@
 
         <div class="section" id="historialAportesSection">
             <h2>Historial de Aportes</h2>
-            <div class="form-group">
-                <label for="selectParticipantHistory">Seleccionar Participante:</label>
-                <select id="selectParticipantHistory">
-                    </select>
-            </div>
-
-            <div id="historyDetailsContainer" style="display: none;">
-                <h3>Historial de Pagos Mensuales</h3>
-                <div class="payments-grid-container">
-                    <div class="payments-grid" id="paymentsGrid">
-                        </div>
+            <div class="history-filters">
+                <div class="form-group history-search-container">
+                    <i class="fas fa-search search-icon"></i>
+                    <input type="text" id="searchAportes" placeholder="Buscar por Nombre o Código..." autocomplete="off">
                 </div>
-
-                <h3 style="margin-top: 30px;">Historial de Abonos</h3>
-                <table id="abonosHistoryTable">
-                    <thead>
-                        <tr>
-                            <th>Fecha</th>
-                            <th>Monto</th>
-                            <th>Registrado Por</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        </tbody>
-                </table>
+                <div class="form-group">
+                    <label for="filterYear">Año:</label>
+                    <select id="filterYear">
+                        <option value="">Todos</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="filterMonth">Mes:</label>
+                    <select id="filterMonth">
+                        <option value="">Todos</option>
+                        <option value="1">Enero</option><option value="2">Febrero</option><option value="3">Marzo</option>
+                        <option value="4">Abril</option><option value="5">Mayo</option><option value="6">Junio</option>
+                        <option value="7">Julio</option><option value="8">Agosto</option><option value="9">Septiembre</option>
+                        <option value="10">Octubre</option><option value="11">Noviembre</option><option value="12">Diciembre</option>
+                    </select>
+                </div>
+                <div class="form-group" id="tutorFilterGroup">
+                    <label for="filterTutor">Tutora:</label>
+                    <select id="filterTutor">
+                        <option value="">Todos</option>
+                    </select>
+                </div>
             </div>
+            <table id="aportesHistoryTable">
+                <thead>
+                    <tr>
+                        <th>Fecha</th>
+                        <th>Participante</th>
+                        <th>Código</th>
+                        <th>Tutora</th>
+                        <th>Monto Pagado</th>
+                        <th>Registrado Por</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    </tbody>
+            </table>
         </div>
     </div>
 
     <div class="public-view-container" id="publicViewContainer" style="display: none;">
         <div class="public-card">
             <h2 id="publicParticipantName"></h2>
-            <p><strong>Cédula de Participante:</strong> <span id="publicParticipantId"></span></p>
+            <p><strong>Código de Participante:</strong> <span id="publicParticipantId"></span></p>
             <p><strong>Fecha de Inscripción:</strong> <span id="publicEnrollmentDate"></span></p>
             <p><strong>Tutora Correspondiente:</strong> <span id="publicTutorName"></span></p>
             <h3 style="margin-top: 20px;">Meses Pendientes</h3>
@@ -936,14 +995,16 @@
 
     <script>
         // --- Global Constants and Variables ---
-        // !!! IMPORTANT: Replace with your actual deployed Apps Script URL !!!
         const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbybWaKOW2qL25VOYe-gb4WMAl3l0xW-Gko2qY7ALnt8JfEo_nV6uwPX5F00ItXul4MQ/exec';
 
         let currentUser = null;
         let allParticipants = [];
-        let allUsers = []; // To store users/tutors for dropdowns
-        let currentParticipantPaymentsHistory = {}; // To store the payments grid data
-        let currentParticipantAbonosHistory = []; // To store the abonos history
+        let allUsers = [];
+        let allAportes = []; // Global variable to store all aportes
+        let allAbonos = []; // Global variable to store all abonos
+        let currentParticipantPaymentsHistory = {};
+        let currentParticipantAbonosHistory = [];
+        let selectedParticipantForAporte = null;
 
         const MONTH_NAMES = [
             'ENE', 'FEB', 'MAR', 'ABR', 'MAY', 'JUN',
@@ -953,11 +1014,10 @@
             ADMIN: 'Administrador',
             TUTORA: 'Tutora'
         };
-
         const MONTO_BASE_ANTES_JULIO_2024 = 2000;
         const MONTO_BASE_DESDE_JULIO_2024 = 3000;
         const CAMBIO_MONTO_ANIO = 2024;
-        const CAMBIO_MONTO_MES = 7; // Julio
+        const CAMBIO_MONTO_MES = 7;
 
         // --- DOM Elements ---
         const loadingOverlay = document.getElementById('loadingOverlay');
@@ -972,45 +1032,48 @@
         const userNameSpan = document.getElementById('userName');
         const userRoleSpan = document.getElementById('userRole');
 
-        // Navigation buttons
         const navDashboard = document.getElementById('navDashboard');
         const navParticipantes = document.getElementById('navParticipantes');
         const navRegistrarAporte = document.getElementById('navRegistrarAporte');
         const navHistorialAportes = document.getElementById('navHistorialAportes');
 
-        // Sections
         const dashboardSection = document.getElementById('dashboardSection');
         const participantesSection = document.getElementById('participantesSection');
         const registrarAporteSection = document.getElementById('registrarAporteSection');
         const historialAportesSection = document.getElementById('historialAportesSection');
 
-        // Participantes Section Elements
-        const addEditParticipantForm = document.getElementById('addEditParticipantForm');
+        const addParticipantButton = document.getElementById('addParticipantButton');
+        const participantModal = document.getElementById('participantModal');
+        const closeButton = participantModal.querySelector('.close-button');
+        const cancelModalButton = document.getElementById('cancelModalButton');
+        const modalTitle = document.getElementById('modalTitle');
+        const codigoParticipanteInput = document.getElementById('codigoParticipante');
         const nombreParticipanteInput = document.getElementById('nombreParticipante');
-        const cedulaParticipanteInput = document.getElementById('cedulaParticipante');
         const fechaInscripcionInput = document.getElementById('fechaInscripcion');
         const tutorParticipanteSelect = document.getElementById('tutorParticipante');
+        const statusParticipanteSelect = document.getElementById('statusParticipante');
         const saveParticipantButton = document.getElementById('saveParticipantButton');
-        const clearParticipantFormButton = document.getElementById('clearParticipantFormButton');
         const participantesTableBody = document.querySelector('#participantesTable tbody');
 
-        // Registrar Aporte Section Elements
-        const selectParticipantAporte = document.getElementById('selectParticipantAporte');
+        const searchParticipantAporte = document.getElementById('searchParticipantAporte');
+        const autocompleteListAporte = document.getElementById('autocompleteListAporte');
+        const selectedParticipantIdAporte = document.getElementById('selectedParticipantIdAporte');
         const paymentDetailsContainer = document.getElementById('paymentDetailsContainer');
         const totalMesesPendientesSpan = document.getElementById('totalMesesPendientes');
         const totalAdeudadoSpan = document.getElementById('totalAdeudado');
         const accumulatedBalanceSpan = document.getElementById('accumulatedBalance');
         const totalAbonosSpan = document.getElementById('totalAbonos');
+        const paymentsGridForAporte = document.getElementById('paymentsGridForAporte');
         const monthSelectionGrid = document.getElementById('monthSelectionGrid');
         const montoTotalPagadoInput = document.getElementById('montoTotalPagado');
         const registerPaymentButton = document.getElementById('registerPaymentButton');
         const registerAbonoButton = document.getElementById('registerAbonoButton');
 
-        // Historial de Aportes Section Elements
-        const selectParticipantHistory = document.getElementById('selectParticipantHistory');
-        const historyDetailsContainer = document.getElementById('historyDetailsContainer');
-        const paymentsGrid = document.getElementById('paymentsGrid');
-        const abonosHistoryTableBody = document.querySelector('#abonosHistoryTable tbody');
+        const searchAportesInput = document.getElementById('searchAportes');
+        const filterYearSelect = document.getElementById('filterYear');
+        const filterMonthSelect = document.getElementById('filterMonth');
+        const filterTutorSelect = document.getElementById('filterTutor');
+        const aportesHistoryTableBody = document.querySelector('#aportesHistoryTable tbody');
 
         // Public View Elements
         const publicViewContainer = document.getElementById('publicViewContainer');
@@ -1021,7 +1084,6 @@
         const publicMonthsTableBody = document.getElementById('publicMonthsTableBody');
         const publicTotalPending = document.getElementById('publicTotalPending');
 
-        // Chart instances
         let aportesPorMesChart = null;
         let aportesPorTutoraChart = null;
 
@@ -1056,9 +1118,9 @@
 
         function formatDateDisplay(dateString) {
             if (!dateString) return '';
-            const date = new Date(dateString + 'T00:00:00'); // Add T00:00:00 to avoid timezone issues
-            const options = { month: 'short', year: 'numeric' };
-            return date.toLocaleDateString('es-ES', options).toUpperCase().replace('.', ''); // JUL 2025
+            const date = new Date(dateString + 'T00:00:00');
+            const options = { year: 'numeric', month: 'short', day: 'numeric' };
+            return date.toLocaleDateString('es-ES', options).toUpperCase().replace('.', '');
         }
 
         function calculateMontoBase(month, year) {
@@ -1079,7 +1141,6 @@
             let body = null;
             let headers = {};
 
-            // Add currentUser to POST requests, except for login or public view
             if (method === 'POST' && action !== 'loginUser' && action !== 'getPublicParticipantDetails') {
                 if (currentUser) {
                     params.currentUser = JSON.stringify(currentUser);
@@ -1139,8 +1200,7 @@
                 showToast(result.message, 'success');
                 displayApp();
                 updateUserInfo();
-                loadInitialData(); // Load all necessary data after login
-                // Redirect to the appropriate section based on role
+                await loadInitialData();
                 if (currentUser.role === ROLES.ADMIN) {
                     showSection('dashboard');
                 } else {
@@ -1153,7 +1213,7 @@
 
         function handleLogout() {
             currentUser = null;
-            localStorage.removeItem('currentUser'); // Clear local storage
+            localStorage.removeItem('currentUser');
             showToast('Sesión cerrada.', 'success');
             displayLogin();
             clearAllSections();
@@ -1179,7 +1239,6 @@
             loginPage.style.display = 'none';
             appContainer.style.display = 'block';
 
-            // Show/hide nav buttons based on user role
             if (currentUser.role === ROLES.ADMIN) {
                 navDashboard.style.display = 'inline-block';
                 navRegistrarAporte.style.display = 'inline-block';
@@ -1215,20 +1274,18 @@
                 navButton.classList.add('active');
             }
 
-            // Specific actions when showing a section
             if (sectionId === 'dashboard' && currentUser.role === ROLES.ADMIN) {
                 loadDashboardData();
             } else if (sectionId === 'participantes') {
-                // Show/hide add form based on role
-                addEditParticipantForm.style.display = (currentUser.role === ROLES.ADMIN) ? 'block' : 'none';
+                addParticipantButton.style.display = (currentUser.role === ROLES.ADMIN) ? 'inline-flex' : 'none';
                 loadParticipants();
-                loadTutorsForDropdown(); // Ensure tutors are loaded for participant form
             } else if (sectionId === 'registrarAporte' && currentUser.role === ROLES.ADMIN) {
-                populateParticipantDropdown('selectParticipantAporte');
-                paymentDetailsContainer.style.display = 'none'; // Hide until participant is selected
+                selectedParticipantForAporte = null;
+                paymentDetailsContainer.style.display = 'none';
+                searchParticipantAporte.value = '';
             } else if (sectionId === 'historialAportes') {
-                populateParticipantDropdown('selectParticipantHistory');
-                historyDetailsContainer.style.display = 'none'; // Hide until participant is selected
+                loadAllAportesAndAbonos();
+                renderHistoryFilters();
             }
         }
 
@@ -1257,7 +1314,6 @@
                 showToast('Error al cargar participantes.', 'error');
             }
 
-            // Only load dashboard if admin
             if (currentUser.role === ROLES.ADMIN) {
                 loadDashboardData();
             }
@@ -1283,7 +1339,6 @@
                 tutorParticipanteSelect.appendChild(option);
             });
         }
-
 
         // --- Dashboard Section Logic ---
 
@@ -1319,7 +1374,7 @@
         }
 
         function renderAportesPorMesChart(data) {
-            resetCharts(); // Destroy existing charts before rendering new ones
+            resetCharts();
             const ctx = document.getElementById('aportesPorMesChart').getContext('2d');
             aportesPorMesChart = new Chart(ctx, {
                 type: 'bar',
@@ -1339,23 +1394,12 @@
                     scales: {
                         y: {
                             beginAtZero: true,
-                            title: {
-                                display: true,
-                                text: 'Monto ($)'
-                            }
+                            title: { display: true, text: 'Monto ($)' }
                         }
                     },
                     plugins: {
-                        legend: {
-                            display: true
-                        },
-                        tooltip: {
-                            callbacks: {
-                                label: function(context) {
-                                    return 'Monto: ' + formatCurrency(context.raw);
-                                }
-                            }
-                        }
+                        legend: { display: true },
+                        tooltip: { callbacks: { label: (context) => 'Monto: ' + formatCurrency(context.raw) } }
                     }
                 }
             });
@@ -1373,10 +1417,7 @@
                     datasets: [{
                         label: 'Aportes por Tutora',
                         data: amounts,
-                        backgroundColor: [
-                            '#4CAF50', '#2196F3', '#FFC107', '#9C27B0', '#FF5722', '#00BCD4',
-                            '#8BC34A', '#E91E63', '#607D8B', '#795548', '#673AB7', '#CDDC39'
-                        ],
+                        backgroundColor: [ '#4CAF50', '#2196F3', '#FFC107', '#9C27B0', '#FF5722' ],
                         hoverOffset: 4
                     }]
                 },
@@ -1384,23 +1425,13 @@
                     responsive: true,
                     maintainAspectRatio: false,
                     plugins: {
-                        legend: {
-                            position: 'top',
-                        },
-                        tooltip: {
-                            callbacks: {
-                                label: function(context) {
-                                    let label = context.label || '';
-                                    if (label) {
-                                        label += ': ';
-                                    }
-                                    if (context.raw !== null) {
-                                        label += formatCurrency(context.raw);
-                                    }
-                                    return label;
-                                }
-                            }
-                        }
+                        legend: { position: 'top' },
+                        tooltip: { callbacks: { label: (context) => {
+                            let label = context.label || '';
+                            if (label) label += ': ';
+                            if (context.raw !== null) label += formatCurrency(context.raw);
+                            return label;
+                        }}}
                     }
                 }
             });
@@ -1414,6 +1445,7 @@
             if (result.success) {
                 allParticipants = result.participants;
                 renderParticipantsTable(allParticipants);
+                loadTutorsForDropdown();
             }
         }
 
@@ -1422,100 +1454,108 @@
             const tutorMap = {};
             allUsers.filter(u => u.Rol === ROLES.TUTORA).forEach(t => tutorMap[t.IdUsuario] = t.Nombre);
 
-            participants.forEach(p => {
+            const participantsToShow = (currentUser.role === ROLES.ADMIN) ? participants : participants.filter(p => p['Estado'] === 'Activo');
+
+            participantsToShow.forEach(p => {
                 const row = participantesTableBody.insertRow();
                 row.insertCell().textContent = p['Nombre Completo'];
-                row.insertCell().textContent = p['Cédula'];
+                row.insertCell().textContent = p['Código'];
                 row.insertCell().textContent = p['Fecha Inscripción'] || 'N/A';
                 row.insertCell().textContent = tutorMap[p['TutorId']] || 'Desconocida';
-
+                row.insertCell().textContent = p['Estado'];
+                
                 const actionsCell = row.insertCell();
                 const editButton = document.createElement('button');
                 editButton.innerHTML = '<i class="fas fa-edit"></i>';
                 editButton.className = 'primary';
-                editButton.onclick = () => editParticipant(p);
+                editButton.onclick = () => openParticipantModal(p);
 
                 const deleteButton = document.createElement('button');
                 deleteButton.innerHTML = '<i class="fas fa-trash-alt"></i>';
                 deleteButton.className = 'danger';
-                deleteButton.onclick = () => deleteParticipant(p['Cédula']);
+                deleteButton.onclick = () => deleteParticipant(p['Código']);
 
                 const shareButton = document.createElement('button');
                 shareButton.innerHTML = '<i class="fas fa-share-alt"></i> Compartir';
                 shareButton.className = 'primary';
-                shareButton.style.backgroundColor = '#17a2b8'; // Info blue
-                shareButton.onclick = () => generateShareableUrl(p['Cédula']);
+                shareButton.style.backgroundColor = '#17a2b8';
+                shareButton.onclick = () => generateShareableUrl(p['Código']);
 
                 actionsCell.className = 'action-buttons';
                 actionsCell.appendChild(editButton);
-                if (currentUser.role === ROLES.ADMIN) { // Only admin can delete
+                if (currentUser.role === ROLES.ADMIN) {
                     actionsCell.appendChild(deleteButton);
                 }
                 actionsCell.appendChild(shareButton);
             });
         }
 
-        function clearParticipantForm() {
-            nombreParticipanteInput.value = '';
-            cedulaParticipanteInput.value = '';
-            fechaInscripcionInput.value = '';
-            tutorParticipanteSelect.value = '';
-            saveParticipantButton.innerHTML = '<i class="fas fa-save"></i> Guardar Participante';
-            cedulaParticipanteInput.disabled = false;
+        function openParticipantModal(participant = null) {
+            if (participant) {
+                modalTitle.textContent = 'Editar Participante';
+                codigoParticipanteInput.value = participant['Código'];
+                codigoParticipanteInput.disabled = false;
+                nombreParticipanteInput.value = participant['Nombre Completo'];
+                fechaInscripcionInput.value = participant['Fecha Inscripción'];
+                tutorParticipanteSelect.value = participant['TutorId'];
+                statusParticipanteSelect.value = participant['Estado'];
+                saveParticipantButton.innerHTML = '<i class="fas fa-save"></i> Guardar Cambios';
+            } else {
+                modalTitle.textContent = 'Agregar Participante';
+                codigoParticipanteInput.value = '';
+                codigoParticipanteInput.disabled = false;
+                nombreParticipanteInput.value = '';
+                fechaInscripcionInput.value = '';
+                tutorParticipanteSelect.value = '';
+                statusParticipanteSelect.value = 'Activo';
+                saveParticipantButton.innerHTML = '<i class="fas fa-plus"></i> Crear Participante';
+            }
+            participantModal.style.display = 'flex';
+        }
+
+        function closeParticipantModal() {
+            participantModal.style.display = 'none';
         }
 
         async function saveParticipant() {
+            const isEditing = modalTitle.textContent.includes('Editar');
+            const originalCodigo = codigoParticipanteInput.value;
             const participantData = {
-                cedula: cedulaParticipanteInput.value,
+                codigo: codigoParticipanteInput.value,
                 nombre: nombreParticipanteInput.value,
                 fechaInscripcion: fechaInscripcionInput.value,
-                tutorId: tutorParticipanteSelect.value
+                tutorId: tutorParticipanteSelect.value,
+                estado: statusParticipanteSelect.value
             };
 
-            if (!participantData.nombre || !participantData.cedula || !participantData.fechaInscripcion || !participantData.tutorId) {
+            if (!participantData.nombre || !participantData.codigo || !participantData.fechaInscripcion || !participantData.tutorId) {
                 showToast('Todos los campos son obligatorios.', 'error');
                 return;
             }
 
-            const result = await callScript('addOrUpdateParticipant', { participantData: JSON.stringify(participantData) }, 'POST');
+            const result = await callScript('addOrUpdateParticipant', { participantData: JSON.stringify(participantData), originalCodigo: isEditing ? originalCodigo : null }, 'POST');
             if (result.success) {
                 showToast(result.message, 'success');
-                clearParticipantForm();
+                closeParticipantModal();
                 loadParticipants();
             }
         }
 
-        function editParticipant(participant) {
-            nombreParticipanteInput.value = participant['Nombre Completo'];
-            cedulaParticipanteInput.value = participant['Cédula'];
-            cedulaParticipanteInput.disabled = true; // Cédula cannot be edited
-            fechaInscripcionInput.value = participant['Fecha Inscripción'];
-            tutorParticipanteSelect.value = participant['TutorId'];
-            saveParticipantButton.innerHTML = '<i class="fas fa-edit"></i> Actualizar Participante';
-            // Scroll to the form
-            window.scrollTo({
-                top: 0,
-                behavior: 'smooth'
-            });
-            showToast('Formulario cargado para edición.', 'success');
-        }
-
-        async function deleteParticipant(cedula) {
+        async function deleteParticipant(codigo) {
             if (!confirm('¿Está seguro de que desea eliminar este participante? Esta acción es irreversible.')) {
                 return;
             }
-            const result = await callScript('deleteParticipant', { cedula: cedula }, 'POST');
+            const result = await callScript('deleteParticipant', { codigo: codigo }, 'POST');
             if (result.success) {
                 showToast(result.message, 'success');
                 loadParticipants();
             }
         }
 
-        async function generateShareableUrl(cedula) {
+        function generateShareableUrl(codigo) {
             const baseUrl = window.location.origin + window.location.pathname;
-            const shareUrl = `${baseUrl}?view=public&id=${cedula}`;
+            const shareUrl = `${baseUrl}?view=public&id=${codigo}`;
 
-            // Create a temporary input element to copy the URL
             const tempInput = document.createElement('input');
             tempInput.value = shareUrl;
             document.body.appendChild(tempInput);
@@ -1529,29 +1569,52 @@
 
         // --- Registrar Aporte Section Logic ---
 
-        function populateParticipantDropdown(dropdownId) {
-            const dropdown = document.getElementById(dropdownId);
-            dropdown.innerHTML = '<option value="">Seleccione un participante</option>';
-            allParticipants.forEach(p => {
-                const option = document.createElement('option');
-                option.value = p['Cédula'];
-                option.textContent = `${p['Nombre Completo']} (C.I. ${p['Cédula']})`;
-                dropdown.appendChild(option);
-            });
+        searchParticipantAporte.addEventListener('input', () => {
+            const query = searchParticipantAporte.value.toLowerCase();
+            const filteredParticipants = allParticipants.filter(p => 
+                (p['Nombre Completo'] && p['Nombre Completo'].toLowerCase().includes(query)) || 
+                (p['Código'] && p['Código'].toLowerCase().includes(query))
+            );
+            renderAutocompleteList(filteredParticipants.filter(p => p['Estado'] === 'Activo'));
+        });
+
+        function renderAutocompleteList(participants) {
+            autocompleteListAporte.innerHTML = '';
+            if (searchParticipantAporte.value.length === 0) {
+                autocompleteListAporte.style.display = 'none';
+                return;
+            }
+            if (participants.length > 0) {
+                autocompleteListAporte.style.display = 'block';
+                participants.forEach(p => {
+                    const item = document.createElement('div');
+                    item.className = 'autocomplete-item';
+                    item.innerHTML = `<span class="name">${p['Nombre Completo']}</span><br><span class="id">Código: ${p['Código']}</span>`;
+                    item.addEventListener('click', () => {
+                        searchParticipantAporte.value = p['Nombre Completo'];
+                        selectedParticipantForAporte = p;
+                        autocompleteListAporte.style.display = 'none';
+                        onParticipantSelectedForAporte();
+                    });
+                    autocompleteListAporte.appendChild(item);
+                });
+            } else {
+                autocompleteListAporte.style.display = 'none';
+            }
         }
 
         async function onParticipantSelectedForAporte() {
-            const cedula = selectParticipantAporte.value;
-            if (!cedula) {
+            if (!selectedParticipantForAporte) {
                 paymentDetailsContainer.style.display = 'none';
                 return;
             }
-
-            const result = await callScript('getParticipantPaymentsHistory', { cedula: cedula }, 'GET');
+            const codigo = selectedParticipantForAporte['Código'];
+            const result = await callScript('getParticipantPaymentsHistory', { codigo: codigo }, 'GET');
             if (result.success) {
                 currentParticipantPaymentsHistory = result.payments || {};
                 currentParticipantAbonosHistory = result.abonos || [];
-                renderMonthCheckboxes(currentParticipantPaymentsHistory);
+                renderPaymentsGridForAporte(currentParticipantPaymentsHistory);
+                renderMonthCheckboxes();
                 calculateAndUpdateBalance();
                 paymentDetailsContainer.style.display = 'block';
             } else {
@@ -1559,21 +1622,73 @@
             }
         }
 
-        function renderMonthCheckboxes(payments) {
+        function renderPaymentsGridForAporte(payments) {
+            paymentsGridForAporte.innerHTML = '';
+            const currentYear = new Date().getFullYear();
+            const currentMonth = new Date().getMonth() + 1;
+
+            const yearHeaderCell = document.createElement('div');
+            yearHeaderCell.textContent = 'Año';
+            yearHeaderCell.className = 'payments-grid-header year-cell';
+            paymentsGridForAporte.appendChild(yearHeaderCell);
+
+            for (let i = 0; i < 12; i++) {
+                const monthHeaderCell = document.createElement('div');
+                monthHeaderCell.textContent = MONTH_NAMES[i];
+                monthHeaderCell.className = 'payments-grid-header';
+                paymentsGridForAporte.appendChild(monthHeaderCell);
+            }
+
+            for (let year = 2022; year <= currentYear + 1; year++) {
+                const yearLabelCell = document.createElement('div');
+                yearLabelCell.textContent = year;
+                yearLabelCell.className = 'payments-grid-cell year-cell';
+                paymentsGridForAporte.appendChild(yearLabelCell);
+
+                for (let month = 1; month <= 12; month++) {
+                    const paymentData = payments[year] && payments[year][month];
+                    const isPaid = paymentData && paymentData.isPaid;
+
+                    const cell = document.createElement('div');
+                    cell.className = 'payments-grid-cell';
+                    const icon = document.createElement('i');
+                    icon.className = 'icon';
+
+                    if (isPaid) {
+                        icon.classList.add('fas', 'fa-check', 'paid');
+                    } else {
+                        icon.classList.add('fas', 'fa-times', 'pending');
+                    }
+                    cell.appendChild(icon);
+                    paymentsGridForAporte.appendChild(cell);
+                }
+            }
+            paymentsGridForAporte.style.gridTemplateColumns = `auto repeat(12, 1fr)`;
+        }
+
+        function renderMonthCheckboxes() {
             monthSelectionGrid.innerHTML = '';
             const currentYear = new Date().getFullYear();
-            const currentMonth = new Date().getMonth() + 1; // getMonth is 0-indexed
+            const currentMonth = new Date().getMonth() + 1;
+            const enrollmentDate = new Date(selectedParticipantForAporte['Fecha Inscripción'] + 'T00:00:00');
+            const enrollmentYear = enrollmentDate.getFullYear();
+            const enrollmentMonth = enrollmentDate.getMonth() + 1;
 
-            for (let year = 2022; year <= currentYear; year++) {
+            for (let year = enrollmentYear; year <= currentYear; year++) {
                 const yearGroup = document.createElement('div');
                 yearGroup.className = 'month-year-group';
                 yearGroup.innerHTML = `<h4>Año ${year}</h4>`;
 
+                const monthContainer = document.createElement('div');
+                monthContainer.style.display = 'grid';
+                monthContainer.style.gridTemplateColumns = 'repeat(3, 1fr)';
+                monthContainer.style.gap = '10px';
+
                 for (let month = 1; month <= 12; month++) {
                     const monthKey = `${year}-${month}`;
-                    const isPaid = (payments[year] && payments[year][month] && payments[year][month].isPaid);
+                    const isPaid = (currentParticipantPaymentsHistory[year] && currentParticipantPaymentsHistory[year][month] && currentParticipantPaymentsHistory[year][month].isPaid);
                     const isFuture = (year > currentYear) || (year === currentYear && month > currentMonth);
-                    const isDisabled = isPaid || isFuture;
+                    const isDisabled = isPaid || isFuture || (year === enrollmentYear && month < enrollmentMonth);
 
                     const monthItem = document.createElement('div');
                     monthItem.className = 'month-checkbox-item';
@@ -1581,41 +1696,40 @@
                         <input type="checkbox" id="month-${monthKey}" value="${monthKey}" data-month="${month}" data-year="${year}" ${isDisabled ? 'disabled' : ''}>
                         <label for="month-${monthKey}">${MONTH_NAMES[month - 1]}</label>
                     `;
-                    yearGroup.appendChild(monthItem);
+                    monthContainer.appendChild(monthItem);
                 }
+                yearGroup.appendChild(monthContainer);
                 monthSelectionGrid.appendChild(yearGroup);
             }
-
-            // Attach event listener to checkboxes for balance calculation
             monthSelectionGrid.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
                 checkbox.addEventListener('change', calculateAndUpdateBalance);
             });
         }
-
+        
         function calculateAndUpdateBalance() {
             let totalAmountDueSelected = 0;
             let totalAbonosAmount = 0;
-
+            
             monthSelectionGrid.querySelectorAll('input[type="checkbox"]:checked').forEach(checkbox => {
                 const month = parseInt(checkbox.dataset.month);
                 const year = parseInt(checkbox.dataset.year);
                 totalAmountDueSelected += calculateMontoBase(month, year);
             });
 
-            // Calculate total of abonos
+            montoTotalPagadoInput.value = totalAmountDueSelected.toFixed(1);
+
             if (currentParticipantAbonosHistory && Array.isArray(currentParticipantAbonosHistory)) {
                 currentParticipantAbonosHistory.forEach(abono => {
                     totalAbonosAmount += abono.montoRegistered;
                 });
             }
 
-            // Calculate overall pending balance from all months up to current
             let totalExpected = 0;
             let totalPaid = 0;
 
             const currentYear = new Date().getFullYear();
             const currentMonth = new Date().getMonth() + 1;
-            const participant = allParticipants.find(p => p['Cédula'] === selectParticipantAporte.value);
+            const participant = selectedParticipantForAporte;
 
             if (participant) {
                 const enrollmentDate = new Date(participant['Fecha Inscripción'] + 'T00:00:00');
@@ -1648,13 +1762,13 @@
         }
 
         async function registerPayment() {
-            const cedula = selectParticipantAporte.value;
-            const montoTotalPagado = parseFloat(montoTotalPagadoInput.value);
-
-            if (!cedula) {
+            if (!selectedParticipantForAporte) {
                 showToast('Debe seleccionar un participante.', 'error');
                 return;
             }
+            const codigo = selectedParticipantForAporte['Código'];
+            const montoTotalPagado = parseFloat(montoTotalPagadoInput.value);
+
             if (isNaN(montoTotalPagado) || montoTotalPagado <= 0) {
                 showToast('El monto total pagado debe ser un número positivo.', 'error');
                 return;
@@ -1667,16 +1781,18 @@
                     year: parseInt(checkbox.dataset.year)
                 });
             });
-            
-            if (selectedMonthsData.length === 0) {
-                 showToast('Debe seleccionar al menos un mes a pagar.', 'error');
+
+            if (selectedMonthsData.length === 0 && montoTotalPagado > 0) {
+                 if (confirm('No ha seleccionado meses a pagar. ¿Desea registrar este monto como un abono?')) {
+                     registerAbono(montoTotalPagado);
+                     return;
+                 }
                  return;
             }
-
-            const fechaRegistro = new Date().toISOString().split('T')[0]; // Current date YYYY-MM-DD
-
+            
+            const fechaRegistro = new Date().toISOString().split('T')[0];
             const result = await callScript('registerAporte', {
-                cedula: cedula,
+                codigo: codigo,
                 selectedMonthsData: JSON.stringify(selectedMonthsData),
                 montoTotalPagado: montoTotalPagado,
                 fechaRegistro: fechaRegistro,
@@ -1685,160 +1801,160 @@
 
             if (result.success) {
                 showToast(result.message, 'success');
-                // Reload participant payments history to update checkboxes and balances
                 onParticipantSelectedForAporte();
-                montoTotalPagadoInput.value = ''; // Clear input
+                montoTotalPagadoInput.value = '';
             }
         }
 
-        async function registerAbono() {
-            const cedula = selectParticipantAporte.value;
-            const amount = parseFloat(montoTotalPagadoInput.value); // Use the same input for abono amount
-
-            if (!cedula) {
+        async function registerAbono(amount = null) {
+            if (!selectedParticipantForAporte) {
                 showToast('Debe seleccionar un participante.', 'error');
                 return;
             }
-            if (isNaN(amount) || amount <= 0) {
+            const codigo = selectedParticipantForAporte['Código'];
+            const abonoAmount = amount || parseFloat(montoTotalPagadoInput.value);
+
+            if (isNaN(abonoAmount) || abonoAmount <= 0) {
                 showToast('El monto del abono debe ser un número positivo.', 'error');
                 return;
             }
-            
-            // Unselect all months when registering an abono
+
             monthSelectionGrid.querySelectorAll('input[type="checkbox"]:checked').forEach(checkbox => {
                 checkbox.checked = false;
             });
 
-            const fechaRegistro = new Date().toISOString().split('T')[0]; // Current date YYYY-MM-DD
-
+            const fechaRegistro = new Date().toISOString().split('T')[0];
             const result = await callScript('registerAbono', {
-                cedula: cedula,
-                amount: amount,
+                codigo: codigo,
+                amount: abonoAmount,
                 date: fechaRegistro,
                 registeredBy: currentUser.name
             }, 'POST');
 
             if (result.success) {
                 showToast(result.message, 'success');
-                onParticipantSelectedForAporte(); // Reload data to reflect new abono
-                montoTotalPagadoInput.value = ''; // Clear input
+                onParticipantSelectedForAporte();
+                montoTotalPagadoInput.value = '';
             }
         }
-
 
         // --- Historial de Aportes Section Logic ---
 
-        async function onParticipantSelectedForHistory() {
-            const cedula = selectParticipantHistory.value;
-            if (!cedula) {
-                historyDetailsContainer.style.display = 'none';
-                return;
-            }
-
-            const result = await callScript('getParticipantPaymentsHistory', { cedula: cedula }, 'GET');
+        async function loadAllAportesAndAbonos() {
+            const result = await callScript('getAllAportesAndAbonos', { userId: currentUser.id, userRole: currentUser.role }, 'GET');
             if (result.success) {
-                currentParticipantPaymentsHistory = result.payments || {};
-                currentParticipantAbonosHistory = result.abonos || [];
-                renderPaymentsGrid(currentParticipantPaymentsHistory);
-                renderAbonosHistoryTable(currentParticipantAbonosHistory);
-                historyDetailsContainer.style.display = 'block';
+                allAportes = result.aportes || [];
+                allAbonos = result.abonos || [];
+                renderAportesHistoryTable();
             } else {
-                historyDetailsContainer.style.display = 'none';
+                showToast('Error al cargar el historial de aportes.', 'error');
             }
         }
 
-        function renderPaymentsGrid(payments) {
-            paymentsGrid.innerHTML = ''; // Clear previous content
-
+        function renderHistoryFilters() {
             const currentYear = new Date().getFullYear();
-            const currentMonth = new Date().getMonth() + 1;
+            const years = Array.from({ length: currentYear - 2022 + 1 }, (_, i) => 2022 + i);
+            filterYearSelect.innerHTML = '<option value="">Todos</option>';
+            years.forEach(year => {
+                const option = document.createElement('option');
+                option.value = year;
+                option.textContent = year;
+                filterYearSelect.appendChild(option);
+            });
 
-            // Add static "Año" header
-            const yearHeaderCell = document.createElement('div');
-            yearHeaderCell.textContent = 'Año';
-            yearHeaderCell.className = 'payments-grid-header year-cell'; // Special style for year header
-            paymentsGrid.appendChild(yearHeaderCell);
-
-            // Add month headers
-            for (let i = 0; i < 12; i++) {
-                const monthHeaderCell = document.createElement('div');
-                monthHeaderCell.textContent = MONTH_NAMES[i];
-                monthHeaderCell.className = 'payments-grid-header';
-                paymentsGrid.appendChild(monthHeaderCell);
-            }
-
-            for (let year = 2022; year <= 2027; year++) { // Iterar por años 2022-2027
-                // Add year label cell for the current row
-                const yearLabelCell = document.createElement('div');
-                yearLabelCell.textContent = year;
-                yearLabelCell.className = 'payments-grid-cell year-cell';
-                paymentsGrid.appendChild(yearLabelCell);
-
-                for (let month = 1; month <= 12; month++) {
-                    const paymentData = payments[year] && payments[year][month];
-                    const isPaid = paymentData && paymentData.isPaid;
-                    const amount = paymentData ? paymentData.amount : 0; // Get amount if available
-
-                    const cell = document.createElement('div');
-                    cell.className = 'payments-grid-cell';
-
-                    if (isPaid) {
-                        cell.innerHTML = `<i class="fas fa-check icon paid"></i><span class="amount">${formatCurrency(amount)}</span>`;
-                    } else {
-                        // Mark future months as "upcoming" if no payment expected yet
-                        if (year > currentYear || (year === currentYear && month > currentMonth)) {
-                            cell.innerHTML = `<i class="fas fa-ellipsis-h icon pending"></i>`; // Ellipsis for future
-                        } else {
-                            cell.innerHTML = `<i class="fas fa-times icon pending"></i>`; // X for pending
-                        }
-                    }
-                    paymentsGrid.appendChild(cell);
+            if (currentUser.role === ROLES.ADMIN) {
+                const tutorMap = {};
+                allUsers.filter(u => u.Rol === ROLES.TUTORA).forEach(t => tutorMap[t.IdUsuario] = t.Nombre);
+                filterTutorSelect.innerHTML = '<option value="">Todos</option>';
+                for (const id in tutorMap) {
+                    const option = document.createElement('option');
+                    option.value = id;
+                    option.textContent = tutorMap[id];
+                    filterTutorSelect.appendChild(option);
                 }
+            } else {
+                document.getElementById('tutorFilterGroup').style.display = 'none';
             }
-
-            // Adjust grid-template-columns dynamically
-            paymentsGrid.style.gridTemplateColumns = `auto repeat(12, 1fr)`; // 'auto' for the year column, 1fr for each month
         }
 
-        function renderAbonosHistoryTable(abonos) {
-            abonosHistoryTableBody.innerHTML = '';
-            if (!abonos || abonos.length === 0) {
-                const row = abonosHistoryTableBody.insertRow();
+        function renderAportesHistoryTable() {
+            aportesHistoryTableBody.innerHTML = '';
+            const query = searchAportesInput.value.toLowerCase();
+            const selectedYear = filterYearSelect.value;
+            const selectedMonth = filterMonthSelect.value;
+            const selectedTutorId = filterTutorSelect.value;
+            const tutorMap = {};
+            allUsers.filter(u => u.Rol === ROLES.TUTORA).forEach(t => tutorMap[t.IdUsuario] = t.Nombre);
+            const participantMap = {};
+            allParticipants.forEach(p => participantMap[p['Código']] = p);
+
+            let combinedHistory = [...allAportes, ...allAbonos];
+
+            const filteredHistory = combinedHistory.filter(item => {
+                const participant = participantMap[item.codigo];
+                if (!participant) return false;
+
+                const participantName = participant['Nombre Completo'].toLowerCase();
+                const participantCodigo = participant['Código'].toLowerCase();
+                const tutorId = participant['TutorId'];
+
+                const date = new Date(item.fechaRegistro + 'T00:00:00');
+                const itemYear = date.getFullYear().toString();
+                const itemMonth = (date.getMonth() + 1).toString();
+
+                const matchesSearch = participantName.includes(query) || participantCodigo.includes(query);
+                const matchesYear = selectedYear === '' || itemYear === selectedYear;
+                const matchesMonth = selectedMonth === '' || itemMonth === selectedMonth;
+                const matchesTutor = selectedTutorId === '' || tutorId === selectedTutorId;
+
+                return matchesSearch && matchesYear && matchesMonth && matchesTutor;
+            });
+
+            if (filteredHistory.length === 0) {
+                const row = aportesHistoryTableBody.insertRow();
                 const cell = row.insertCell();
-                cell.colSpan = 3;
-                cell.textContent = 'No hay abonos registrados para este participante.';
+                cell.colSpan = 6;
+                cell.textContent = 'No se encontraron registros de aportes o abonos.';
                 cell.style.textAlign = 'center';
                 cell.style.color = '#777';
                 return;
             }
 
-            // Group abonos by date and sum their amounts
-            const consolidatedAbonos = {};
-            abonos.forEach(abono => {
-                const date = abono.fechaRegistro; // Already YYYY-MM-DD
-                if (!consolidatedAbonos[date]) {
-                    consolidatedAbonos[date] = { totalAmount: 0, registeredBy: abono.registeredBy };
-                }
-                consolidatedAbonos[date].totalAmount += abono.montoRegistered;
-            });
+            filteredHistory.forEach(item => {
+                const participant = participantMap[item.codigo];
+                const row = aportesHistoryTableBody.insertRow();
+                
+                const dateCell = row.insertCell();
+                dateCell.textContent = formatDateDisplay(item.fechaRegistro);
+                dateCell.setAttribute('data-label', 'Fecha:');
 
-            // Sort dates
-            const sortedDates = Object.keys(consolidatedAbonos).sort((a, b) => new Date(a) - new Date(b));
+                const nameCell = row.insertCell();
+                nameCell.textContent = participant ? participant['Nombre Completo'] : 'Desconocido';
+                nameCell.setAttribute('data-label', 'Participante:');
+                
+                const codigoCell = row.insertCell();
+                codigoCell.textContent = item.codigo;
+                codigoCell.setAttribute('data-label', 'Código:');
 
-            sortedDates.forEach(date => {
-                const abonoData = consolidatedAbonos[date];
-                const row = abonosHistoryTableBody.insertRow();
-                row.insertCell().textContent = formatDateDisplay(date); // Format for display JUL 2025
-                row.insertCell().textContent = formatCurrency(abonoData.totalAmount);
-                row.insertCell().textContent = abonoData.registeredBy;
+                const tutorCell = row.insertCell();
+                tutorCell.textContent = participant ? tutorMap[participant['TutorId']] || 'N/A' : 'N/A';
+                tutorCell.setAttribute('data-label', 'Tutora:');
+
+                const montoCell = row.insertCell();
+                montoCell.textContent = formatCurrency(item.montoPagado || item.montoRegistered);
+                montoCell.setAttribute('data-label', 'Monto Pagado:');
+                
+                const registeredByCell = row.insertCell();
+                registeredByCell.textContent = item.registeredBy;
+                registeredByCell.setAttribute('data-label', 'Registrado Por:');
             });
         }
 
 
         // --- Public View Logic (for shared URL) ---
 
-        async function loadPublicParticipantDetails(cedula) {
-            const result = await callScript('getPublicParticipantDetails', { cedula: cedula }, 'GET');
+        async function loadPublicParticipantDetails(codigo) {
+            const result = await callScript('getPublicParticipantDetails', { codigo: codigo }, 'GET');
 
             if (result.success) {
                 const p = result.participant;
@@ -1846,7 +1962,7 @@
                 const totalMontoPendiente = result.totalMontoPendiente;
 
                 publicParticipantName.textContent = p.nombre || 'Participante';
-                publicParticipantId.textContent = p.cedula || 'N/A';
+                publicParticipantId.textContent = p.codigo || 'N/A';
                 publicEnrollmentDate.textContent = p.fechaInscripcion || 'N/A';
                 publicTutorName.textContent = p.tutorName || 'Desconocida';
 
@@ -1867,9 +1983,9 @@
                     });
                 }
                 publicTotalPending.textContent = formatCurrency(totalMontoPendiente);
-                publicViewContainer.style.display = 'flex'; // Show public view
-                loginPage.style.display = 'none'; // Hide login
-                appContainer.style.display = 'none'; // Hide main app
+                publicViewContainer.style.display = 'flex';
+                loginPage.style.display = 'none';
+                appContainer.style.display = 'none';
             } else {
                 showToast(result.message || 'Error al cargar los detalles públicos del participante.', 'error');
                 publicViewContainer.style.display = 'none';
@@ -1883,46 +1999,50 @@
         loginButton.addEventListener('click', handleLogin);
         logoutButton.addEventListener('click', handleLogout);
 
-        // Navigation buttons
         navDashboard.addEventListener('click', () => showSection('dashboard'));
         navParticipantes.addEventListener('click', () => showSection('participantes'));
         navRegistrarAporte.addEventListener('click', () => showSection('registrarAporte'));
         navHistorialAportes.addEventListener('click', () => showSection('historialAportes'));
 
-        // Participantes actions
+        // Participantes Modal Actions
+        addParticipantButton.addEventListener('click', () => openParticipantModal());
+        closeButton.addEventListener('click', closeParticipantModal);
+        cancelModalButton.addEventListener('click', closeParticipantModal);
         saveParticipantButton.addEventListener('click', saveParticipant);
-        clearParticipantFormButton.addEventListener('click', clearParticipantForm);
+        window.onclick = function(event) {
+            if (event.target == participantModal) {
+                closeParticipantModal();
+            }
+        };
 
         // Registrar Aporte actions
-        selectParticipantAporte.addEventListener('change', onParticipantSelectedForAporte);
-        registerPaymentButton.addEventListener('click', registerPayment);
-        registerAbonoButton.addEventListener('click', registerAbono);
         montoTotalPagadoInput.addEventListener('input', calculateAndUpdateBalance);
+        registerPaymentButton.addEventListener('click', registerPayment);
+        registerAbonoButton.addEventListener('click', () => registerAbono());
+
+        // Historial de Aportes Filters
+        searchAportesInput.addEventListener('input', renderAportesHistoryTable);
+        filterYearSelect.addEventListener('change', renderAportesHistoryTable);
+        filterMonthSelect.addEventListener('change', renderAportesHistoryTable);
+        filterTutorSelect.addEventListener('change', renderAportesHistoryTable);
 
 
-        // Historial de Aportes actions
-        selectParticipantHistory.addEventListener('change', onParticipantSelectedForHistory);
-
-
-        // --- Initial Load Logic (Check for public view or regular app) ---
+        // --- Initial Load Logic ---
 
         document.addEventListener('DOMContentLoaded', () => {
             const urlParams = new URLSearchParams(window.location.search);
             const viewType = urlParams.get('view');
-            const cedula = urlParams.get('id');
+            const codigo = urlParams.get('id');
 
-            if (viewType === 'public' && cedula) {
-                // Public view mode
-                loadPublicParticipantDetails(cedula);
+            if (viewType === 'public' && codigo) {
+                loadPublicParticipantDetails(codigo);
             } else {
-                // Regular app mode (requires login)
                 const storedUser = localStorage.getItem('currentUser');
                 if (storedUser) {
                     currentUser = JSON.parse(storedUser);
                     displayApp();
                     updateUserInfo();
                     loadInitialData();
-                    // Default section based on role
                     if (currentUser.role === ROLES.ADMIN) {
                         showSection('dashboard');
                     } else {
@@ -1934,7 +2054,6 @@
             }
         });
 
-        // Save current user to localStorage on beforeunload to persist login
         window.addEventListener('beforeunload', () => {
             if (currentUser) {
                 localStorage.setItem('currentUser', JSON.stringify(currentUser));
